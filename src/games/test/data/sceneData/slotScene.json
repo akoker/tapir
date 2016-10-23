@@ -1,0 +1,29 @@
+{
+    "name": "slotScene",
+    "scene":[
+      {
+        "type": "object",
+        "name": "mainBG",
+        "background": "uiAssets.mainBackground",
+        "x": 0,
+        "y": 0
+      },
+      {
+        "type": "object",
+        "name": "gameFrame",
+        "background": "uiAssets.frame",
+        "x": 0,
+        "y": 0,
+        "children": [
+          {
+              "type": "dynamicObject",
+              "name": "cliffhanger",
+              "dynTypeName": "spriteType",
+              "background": "uiAssets.cliffhanger",
+              "x": 1050,
+              "y": 200
+          }
+        ]
+      }
+    ]
+}

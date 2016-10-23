@@ -1,0 +1,397 @@
+{
+    "name": "gambleScene",
+    "settings":{
+        "numberOfReels": 5,
+        "totalLength": 20,
+        "numberOfSymbolsOnReel": 3,
+        "reelGap": 10,
+        "slotXPos": 260,
+        "slotYPos": 124,
+        "reelItemSize": 100,
+        "totalNumberOfSymbols": 9,
+        "totalSpinIterations": 4,
+        "spinSpeed": 12,
+        "spinMaxSpeed": 40
+    },
+    "symbolProps":{
+        "symbolWidth": 144,
+        "symbolHeight": 144,
+        "x": 0,
+        "y": 0
+    },
+    "scene":[
+        {
+            "type": "object",
+            "name": "mainBG",
+            "asset": "mainBackground",
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 800
+        },
+        {
+            "type": "object",
+            "name": "gameFrame",
+            "asset": "frame",
+            "x": 0,
+            "y": 0,
+            "width":1280,
+            "height":800
+        },
+        {
+            "type": "slotGame",
+            "name": "game",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "type": "object",
+            "name": "cliffhanger",
+            "asset": "cliffhanger",
+            "x": 1050,
+            "y": 200
+        },
+        {
+            "type": "object",
+            "name": "spinButon",
+            "asset": "btnSpin",
+            "x": 540,
+            "y": 580,
+            "buttonMode": true,
+            "children":[
+                {
+                    "type": "text",
+                    "name": "spinText",
+                    "content": "SPIN/STOP",
+                    "x": 35,
+                    "y": 90,
+                    "props":{
+                        "fontSize": 25,
+                        "fill": "0x234567"
+                    }
+                }
+            ],
+            "actions":
+            {
+                "mouseDown":{
+                    "execFunction": "startSpin",
+                    "execProps": ""
+                }
+            }
+
+        },
+        {
+            "type": "object",
+            "name": "lineContainer",
+            "asset": "transparentBG",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "type": "object",
+            "name": "gameLogo",
+            "asset": "logo",
+            "x": 400,
+            "y": -20
+        },
+        {
+            "type": "animation",
+            "name": "symbolAnim",
+            "x": 400,
+            "y": -20
+        },
+        {
+            "type": "object",
+            "name": "animationContainer",
+            "asset": "transparentBG",
+            "x": 0,
+            "y": 0
+        },
+        {
+            "type": "object",
+            "name": "paytable",
+            "asset": "window_2",
+            "x": 190,
+            "y": 150,
+            "visible": false,
+            "children":[
+                {
+                    "type": "object",
+                    "name": "symbolValues",
+                    "asset": "symbolValues",
+                    "x": 50,
+                    "y": 50
+                },
+                {
+                    "type": "object",
+                    "name": "btnPaytableClose",
+                    "asset": "btnClose",
+                    "x": 850,
+                    "y": -10,
+                    "buttonMode": true,
+                    "actions":{
+                        "mouseDown":{
+                            "execFunction": "setObjectProperty",
+                            "execProps":[
+                                {
+                                    "target": "paytable",
+                                    "propName": "visible",
+                                    "propValue": false
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "object",
+            "name": "btnPaytable",
+            "asset": "btnPaytable",
+            "x": 1100,
+            "y": 50,
+            "buttonMode": true,
+            "actions":{
+                "mouseDown":{
+                    "execFunction": "setObjectProperty",
+                    "execProps":[
+                        {
+                            "target": "paytable",
+                            "propName": "visible",
+                            "propValue": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "object",
+            "name": "lineButtonContainer",
+            "interactive": true,
+            "buttonMode": true,
+            "asset": "transparentBG",
+            "x": 100,
+            "y": 100,
+            "width": 50,
+            "height": 500,
+            "children":[
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton1",
+                    "asset":{
+                        "active":"lineBtn1",
+                        "passive":"lineBtn1Passive"
+                    },
+                    "buttonState": "passive",
+                    "x": 0,
+                    "y": 0,
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 0
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton2",
+                    "asset":{
+                        "active":"lineBtn2",
+                        "passive":"lineBtn2Passive"
+                    },
+                    "x": 0,
+                    "y": 50,
+                    "buttonState": "passive",
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 1
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton3",
+                    "asset":{
+                        "active":"lineBtn3",
+                        "passive":"lineBtn3Passive"
+                    },
+                    "x": 0,
+                    "y": 100,
+                    "buttonState": "passive",
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 2
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton4",
+                    "asset":{
+                        "active":"lineBtn4",
+                        "passive":"lineBtn4Passive"
+                    },
+                    "x": 0,
+                    "y": 150,
+                    "buttonState": "passive",
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 3
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton5",
+                    "asset":{
+                        "active":"lineBtn5",
+                        "passive":"lineBtn5Passive"
+                    },
+                    "x": 0,
+                    "y": 200,
+                    "buttonState": "passive",
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 4
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton6",
+                    "asset":{
+                        "active":"lineBtn6",
+                        "passive":"lineBtn6Passive"
+                    },
+                    "x": 0,
+                    "y": 250,
+                    "buttonState": "passive",
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 5
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton7",
+                    "asset":{
+                        "active":"lineBtn7",
+                        "passive":"lineBtn7Passive"
+                    },
+                    "x": 0,
+                    "y": 300,
+                    "buttonState": "passive",
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 6
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton8",
+                    "asset":{
+                        "active":"lineBtn8",
+                        "passive":"lineBtn8Passive"
+                    },
+                    "x": 0,
+                    "y": 350,
+                    "buttonState": "passive",
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 7
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "object",
+                    "buttonMode": true,
+                    "name": "lineButton9",
+                    "asset":{
+                        "active":"lineBtn9",
+                        "passive":"lineBtn9Passive"
+                    },
+                    "x": 0,
+                    "y": 400,
+                    "buttonState": "passive",
+                    "actions":{
+                        "mouseDown":[
+                            {
+                                "execFunction": "toggleButtonState",
+                                "execProps": ""
+                            },
+                            {
+                                "execFunction": "setLines",
+                                "execProps": 8
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

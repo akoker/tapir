@@ -1,0 +1,19 @@
+{
+  "name": "gooengine",
+  "version": "1.0.0",
+  "description": "game engine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "watchify src/app.js -o src/bundle.js |beefy index.html"
+  },
+  "author": "alican köker",
+  "license": "ISC",
+  "dependencies": {
+    "browserify": "^13.1.0",
+    "pixi.js": "^4.0.3"
+  },
+  "devdependencies": {
+    "beefy": "^2.1.8"
+  }
+}

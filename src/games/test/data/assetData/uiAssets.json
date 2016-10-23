@@ -1,0 +1,120 @@
+{
+  "type": "sprite",
+  "name": "uiAssets",
+  "scene": "slotScene",
+  "pathPrefix": "/src/games/test/assets/uiAssets/",
+  "assets":[
+    {
+        "name" : "mainBackground",
+        "path": "screen.png"
+    },
+    {
+        "name" : "frame",
+        "path": "back.png"
+    },
+    {
+        "name" : "logo",
+        "path": "logo.png"
+    },
+    {
+        "name" : "cliffhanger",
+        "path": "cliffhanger.png"
+    },
+    {
+        "name" : "btnSpin",
+        "path": "btnSpin.png"
+    },
+    {
+        "name": "btnPaytable",
+        "path": "paytable.png"
+    },
+    {
+        "name": "window_2",
+        "path": "window_2.png"
+    },
+    {
+        "name": "btnClose",
+        "path": "close.png"
+    },
+    {
+        "name": "symbolValues",
+        "path": "symbolValues.png"
+    },
+    {
+        "name": "lineBtn1",
+        "path": "line1.png"
+    },
+    {
+        "name": "lineBtn1Passive",
+        "path": "line1Passive.png"
+    },
+    {
+        "name": "lineBtn2",
+        "path": "line2.png"
+    },
+    {
+        "name": "lineBtn2Passive",
+        "path": "line2Passive.png"
+    },
+    {
+        "name": "lineBtn3",
+        "path": "line3.png"
+    },
+    {
+        "name": "lineBtn3Passive",
+        "path": "line3Passive.png"
+    },
+    {
+        "name": "lineBtn4",
+        "path": "line4.png"
+    },
+    {
+        "name": "lineBtn4Passive",
+        "path": "line4Passive.png"
+    },
+    {
+        "name": "lineBtn5",
+        "path": "line5.png"
+    },
+    {
+        "name": "lineBtn5Passive",
+        "path": "line5Passive.png"
+    },
+    {
+        "name": "lineBtn6",
+        "path": "line6.png"
+    },
+    {
+        "name": "lineBtn6Passive",
+        "path": "line6Passive.png"
+    },
+    {
+        "name": "lineBtn7",
+        "path": "line7.png"
+    },
+    {
+        "name": "lineBtn7Passive",
+        "path": "line7Passive.png"
+    },
+    {
+        "name": "lineBtn8",
+        "path": "line8.png"
+    },
+    {
+        "name": "lineBtn8Passive",
+        "path": "line8Passive.png"
+    },
+    {
+        "name": "lineBtn9",
+        "path": "line9.png"
+    },
+    {
+        "name": "lineBtn9Passive",
+        "path": "line9Passive.png"
+    },
+    {
+        "name": "transparentBG",
+        "path": "transparent.png"
+    }
+  ]
+}

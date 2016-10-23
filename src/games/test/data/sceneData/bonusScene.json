@@ -1,0 +1,10 @@
+{
+    "name": "bonusScene",
+    "scene":[
+      {
+        "type": "object",
+        "name": "mainBG",
+        "background": "screen.png"
+      }
+    ]
+}

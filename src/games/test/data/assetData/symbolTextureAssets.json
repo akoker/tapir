@@ -1,0 +1,44 @@
+{
+  "type": "sprite",
+  "scene": "slotScene",
+  "name": "symbolTextures",
+  "pathPrefix": "/src/games/test/assets/symbols/symbolTextures/",
+  "assets":[
+    {
+      "name": "symbol01",
+      "path": "1.png"
+    },
+    {
+      "name": "symbol02",
+      "path": "2.png"
+    },
+    {
+      "name": "symbol03",
+      "path": "3.png"
+    },
+    {
+      "name": "symbol04",
+      "path": "4.png"
+    },
+    {
+      "name": "symbol05",
+      "path": "5.png"
+    },
+    {
+      "name": "symbol06",
+      "path": "6.png"
+    },
+    {
+      "name": "symbol07",
+      "path": "7.png"
+    },
+    {
+      "name": "symbol08",
+      "path": "8.png"
+    },
+    {
+      "name": "symbol09",
+      "path": "bonus.png"
+    }
+  ]
+}
