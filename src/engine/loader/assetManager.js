@@ -22,9 +22,9 @@ assetManager.registerAllAssets = function(assetData, callback, callbackArgs = nu
   toLoad = assetData.length;
   loadCount = 0;
 
-  for(var i = 0; i < toLoad; i++){
-    createPileAssetBatch(assetData[i]);
-  }
+  assetData.forEach(v => {
+    createPileAssetBatch(v)
+  });
 
 }
 

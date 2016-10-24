@@ -23,11 +23,11 @@ module.exports = function(data){
 
   this.createScene = function(data){
     console.log("scene '" + this.name + "' is getting created");
-    var d = this.traverse(data.scene);
+    let d = this.traverse(data.scene);
 
-    for(var i = 0; i < d.length; i++){
-      this.container.addChild(d[i]);
-    }
+    d.forEach(v => {
+      this.container.addChild(v);
+    });
 
     return this;
   }
@@ -46,14 +46,14 @@ module.exports = function(data){
 
   this.traverse = function(p){
       var objArr = new Array();
-      for(var i = 0; i < p.length; i++){
-          var v = objectManager.createObject(p[i]);
+      for(let i = 0; i < p.length; i++){
+          let v = objectManager.createObject(p[i]);
           console.log("creating object: " + p[i].name);
           if(v!=null){
               objArr.push(v);
               if(p[i].children!=undefined){
-                  var ob = this.traverse(p[i].children);
-                  for(var j = 0; j < ob.length;j++)
+                  let ob = this.traverse(p[i].children);
+                  for(let j = 0; j < ob.length;j++)
                       v.addChild(ob[j]);
               }
           }

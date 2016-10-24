@@ -21,7 +21,6 @@ var toLoad;
 dataManager.loadAllGameData = function(gameDataFilePath, callback){
   loadFinishedCallbackFunction = callback;
   dataManager.getGameData(gameDataFilePath);
-
 }
 
 dataManager.getGameData = function(path){
@@ -49,7 +48,6 @@ dataManager.getData = function(path, varToSet, dataType = "json"){
 }
 
 dataManager.getSceneByName = function(name){
-  console.log("passed name: " + name);
   return manipulator.searchArrayElemByName(name, dataManager.sceneData);
 }
 

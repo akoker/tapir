@@ -3,11 +3,14 @@
 var manipulator = exports;
 
 manipulator.searchArrayElemByName = function(name, array){
-  for(var i = 0; i < array.length; i++){
-    if(array[i].name == name)
-      return array[i];
-  }
-  return null;
+  let returnVal = null;
+  //ES 6
+  array.forEach(o => {
+    if(o.name == name){
+      returnVal = o;
+    }
+  })
+  return returnVal;
 }
 
 manipulator.searchChildByName = function(name, object){
@@ -20,6 +23,7 @@ manipulator.traverseData = function(object){
 }
 
 manipulator.searchArrayElemByPropName = function(propName, propValue, array){
+  //ES 5
   for(var i = 0; i < array.length; i++){
     var o = array[i];
     if(o[propName] == propValue)

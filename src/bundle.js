@@ -34,17 +34,25 @@ var gameFile = '../src/games/test/data/game.json';
 
 gameManager.initGame(gameFile);
 
-},{"./games/test/gameManager.js":14}],3:[function(require,module,exports){
+},{"./games/test/gameManager.js":26}],3:[function(require,module,exports){
+module.exports = {
+    manipulator:     require('./manipulations')
+};
+
+},{"./manipulations":4}],4:[function(require,module,exports){
 "use strict";
 
 var manipulator = exports;
 
 manipulator.searchArrayElemByName = function(name, array){
-  for(var i = 0; i < array.length; i++){
-    if(array[i].name == name)
-      return array[i];
-  }
-  return null;
+  let returnVal = null;
+  //ES 6
+  array.forEach(o => {
+    if(o.name == name){
+      returnVal = o;
+    }
+  })
+  return returnVal;
 }
 
 manipulator.searchChildByName = function(name, object){
@@ -57,6 +65,7 @@ manipulator.traverseData = function(object){
 }
 
 manipulator.searchArrayElemByPropName = function(propName, propValue, array){
+  //ES 5
   for(var i = 0; i < array.length; i++){
     var o = array[i];
     if(o[propName] == propValue)
@@ -65,7 +74,15 @@ manipulator.searchArrayElemByPropName = function(propName, propValue, array){
   return null;
 }
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
+module.exports = {
+    common: require('./common/'),
+    loader: require('./loader/'),
+    sceneManagement : require('./sceneManagement/'),
+    objectManagement : require('./objectManagement/')
+};
+
+},{"./common/":3,"./loader/":8,"./objectManagement/":14,"./sceneManagement/":23}],6:[function(require,module,exports){
 "use strict";
 
 var assetManager = exports;
@@ -90,9 +107,9 @@ assetManager.registerAllAssets = function(assetData, callback, callbackArgs = nu
   toLoad = assetData.length;
   loadCount = 0;
 
-  for(var i = 0; i < toLoad; i++){
-    createPileAssetBatch(assetData[i]);
-  }
+  assetData.forEach(v => {
+    createPileAssetBatch(v)
+  });
 
 }
 
@@ -142,7 +159,7 @@ assetManager.findBatchBySceneName = function(sceneName){
   return manipulator.searchArrayElemByPropName("scene", sceneName, assetManager.assets);
 }
 
-},{"./../common/manipulations.js":3,"./loaders/assetLoader.js":6,"./loaders/fileLoader.js":7}],5:[function(require,module,exports){
+},{"./../common/manipulations.js":4,"./loaders/assetLoader.js":9,"./loaders/fileLoader.js":10}],7:[function(require,module,exports){
 "use strict";
 
 var dataManager = exports;
@@ -166,7 +183,6 @@ var toLoad;
 dataManager.loadAllGameData = function(gameDataFilePath, callback){
   loadFinishedCallbackFunction = callback;
   dataManager.getGameData(gameDataFilePath);
-
 }
 
 dataManager.getGameData = function(path){
@@ -194,7 +210,6 @@ dataManager.getData = function(path, varToSet, dataType = "json"){
 }
 
 dataManager.getSceneByName = function(name){
-  console.log("passed name: " + name);
   return manipulator.searchArrayElemByName(name, dataManager.sceneData);
 }
 
@@ -230,7 +245,14 @@ function checkFinished(total){
     return false;
 }
 
-},{"./../common/manipulations.js":3,"./loaders/fileLoader.js":7}],6:[function(require,module,exports){
+},{"./../common/manipulations.js":4,"./loaders/fileLoader.js":10}],8:[function(require,module,exports){
+module.exports = {
+    loaders: require('./loaders/'),
+    assetManager: require('./assetManager'),
+    dataManager : require('./dataManager')
+};
+
+},{"./assetManager":6,"./dataManager":7,"./loaders/":12}],9:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -245,11 +267,11 @@ module.exports = function(args){
 
     this.Load = function(callback){
         callbackFunc = callback;
-        for(var i = 0; i < args.assets.length; i++){
-            loader.add(args.assets[i].name, args.pathPrefix + args.assets[i].path);
+        args.assets.forEach(v =>{
+            loader.add(v.name, args.pathPrefix + v.path);
             loader.once('complete', onAssetsLoaded);
             loader.load();
-        }
+        });
     }
 
     function onAssetsLoaded(){
@@ -265,7 +287,7 @@ module.exports = function(args){
     return this;
 }
 
-},{"pixi.js":1}],7:[function(require,module,exports){
+},{"pixi.js":1}],10:[function(require,module,exports){
 "use strict";
 
 var fileLoader = exports;
@@ -301,7 +323,27 @@ fileLoader.loadFile = function (path, callback, callbackVar = null, type = "json
     fileObject.send(null);
 }
 
-},{"./../dataManager.js":5}],8:[function(require,module,exports){
+},{"./../dataManager.js":7}],11:[function(require,module,exports){
+//to change load size in main json file
+
+},{}],12:[function(require,module,exports){
+module.exports = {
+    assetLoader: require('./assetLoader'),
+    fileLoader : require('./fileLoader'),
+    fileWriter: require('./fileWriter'),
+    jsonProcessor : require('./jsonProcessor')
+};
+
+},{"./assetLoader":9,"./fileLoader":10,"./fileWriter":11,"./jsonProcessor":13}],13:[function(require,module,exports){
+var jsonProcessor = exports;
+
+},{}],14:[function(require,module,exports){
+module.exports = {
+    objectTypes: require('./objectTypes/'),
+    objectManager: require('./objectManager')
+};
+
+},{"./objectManager":15,"./objectTypes/":21}],15:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -349,7 +391,12 @@ function setObjectProperty(o, p, v){
   o[p] = v;
 }
 
-},{"./../loader/assetManager.js":4,"./objectTypes/container.js":9,"./objectTypes/dynamicTypes.js":10,"./objectTypes/gameObject.js":11,"pixi.js":1}],9:[function(require,module,exports){
+},{"./../loader/assetManager.js":6,"./objectTypes/container.js":18,"./objectTypes/dynamicTypes.js":19,"./objectTypes/gameObject.js":20,"pixi.js":1}],16:[function(require,module,exports){
+"use strict";
+
+},{}],17:[function(require,module,exports){
+
+},{}],18:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -367,7 +414,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../objectManager.js":8,"pixi.js":1}],10:[function(require,module,exports){
+},{"./../objectManager.js":15,"pixi.js":1}],19:[function(require,module,exports){
 "use strict";
 var manipulator = require('./../../common/manipulations.js');
 var dynamicTypes = exports;
@@ -382,7 +429,7 @@ dynamicTypes.searchDynamicTypeByName = function(name){
   return manipulator.searchArrayElemByPropName("dynTypeName", name, dynamicTypes.types);
 }
 
-},{"./../../common/manipulations.js":3}],11:[function(require,module,exports){
+},{"./../../common/manipulations.js":4}],20:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -408,7 +455,25 @@ module.exports = function(){
   return this;
 }
 
-},{"./../../loader/assetManager.js":4,"./../objectManager.js":8,"pixi.js":1}],12:[function(require,module,exports){
+},{"./../../loader/assetManager.js":6,"./../objectManager.js":15,"pixi.js":1}],21:[function(require,module,exports){
+module.exports = {
+    animation: require('./animation'),
+    button : require('./button'),
+    container: require('./container'),
+    dynamicTypes : require('./dynamicTypes'),
+    gameObject: require('./gameObject'),
+    textObject : require('./textObject')
+};
+
+},{"./animation":16,"./button":17,"./container":18,"./dynamicTypes":19,"./gameObject":20,"./textObject":22}],22:[function(require,module,exports){
+arguments[4][16][0].apply(exports,arguments)
+},{"dup":16}],23:[function(require,module,exports){
+module.exports = {
+    sceneManager:     require('./sceneManager'),
+    scene: require('./scene')
+};
+
+},{"./scene":24,"./sceneManager":25}],24:[function(require,module,exports){
 /******************************************************************************
 Scene is simply a pixi container. There can be multiple scenes in a game so
 there can be multiple instances of scene class. All scnes are manipulated by
@@ -434,11 +499,11 @@ module.exports = function(data){
 
   this.createScene = function(data){
     console.log("scene '" + this.name + "' is getting created");
-    var d = this.traverse(data.scene);
+    let d = this.traverse(data.scene);
 
-    for(var i = 0; i < d.length; i++){
-      this.container.addChild(d[i]);
-    }
+    d.forEach(v => {
+      this.container.addChild(v);
+    });
 
     return this;
   }
@@ -457,14 +522,14 @@ module.exports = function(data){
 
   this.traverse = function(p){
       var objArr = new Array();
-      for(var i = 0; i < p.length; i++){
-          var v = objectManager.createObject(p[i]);
+      for(let i = 0; i < p.length; i++){
+          let v = objectManager.createObject(p[i]);
           console.log("creating object: " + p[i].name);
           if(v!=null){
               objArr.push(v);
               if(p[i].children!=undefined){
-                  var ob = this.traverse(p[i].children);
-                  for(var j = 0; j < ob.length;j++)
+                  let ob = this.traverse(p[i].children);
+                  for(let j = 0; j < ob.length;j++)
                       v.addChild(ob[j]);
               }
           }
@@ -476,7 +541,7 @@ module.exports = function(data){
 }
 /*end-member functions*********************************************************/
 
-},{"./../loader/dataManager.js":5,"./../objectManagement/objectManager.js":8,"pixi.js":1}],13:[function(require,module,exports){
+},{"./../loader/dataManager.js":7,"./../objectManagement/objectManager.js":15,"pixi.js":1}],25:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -516,23 +581,32 @@ sceneManager.closeCurrentScene = function(){
   sceneManager.currentScene.hide();
 }
 
-},{"./../common/manipulations.js":3,"./../loader/dataManager.js":5,"./scene.js":12,"pixi.js":1}],14:[function(require,module,exports){
+},{"./../common/manipulations.js":4,"./../loader/dataManager.js":7,"./scene.js":24,"pixi.js":1}],26:[function(require,module,exports){
 "use strict";
 
-var objectManager = require('./../../engine/objectManagement/objectManager.js');
+//include pixi
 var pixi = require('pixi.js');
-var sceneManager = require('./../../engine/sceneManagement/sceneManager.js');
-var dataManager = require('./../../engine/loader/dataManager.js');
-var assetManager = require('./../../engine/loader/assetManager.js');
 
+//include framwork
+var tapir = require('./../../');
+
+var scene = tapir.sceneManagement.scene;
+var objectManager = tapir.objectManagement.objectManager;
+var sceneManager = tapir.sceneManagement.sceneManager;
+var dataManager = tapir.loader.dataManager;
+var assetManager = tapir.loader.assetManager;
+var dynamicTypes = tapir.objectManagement.objectTypes.dynamicTypes;
+
+//a custom object type declaration example
 var spriteType = require('./scripts/types/spriteType.js');
-var dynamicTypes = require('./../../engine/objectManagement/objectTypes/dynamicTypes.js')
 
+//path of the JSON file containing game data to initialize the game
 var gameDataPath = ('src/games/test/data/game.json');
-var scene = require('./../../engine/sceneManagement/scene.js');
 
+//gameManager is the main class of the game
 var gameManager = exports;
 
+//setting up renderer and stage
 var interactive = true;
 var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true});
 var stage = new pixi.Container();
@@ -540,6 +614,7 @@ var stage = new pixi.Container();
 var gameDiv = document.getElementById('gameDiv');
 gameDiv.appendChild(renderer.view);
 
+//function to initialize the game
 gameManager.initGame = function(gameDataFilePath){
   //load json files and keep data inside dataManager.
   loadGameData();
@@ -566,11 +641,6 @@ function assetsLoaded(){
 
 function loadGameData(){
   dataManager.loadAllGameData(gameDataPath, loadAssets);
-
-  /*var a = dynamicTypes.searchDynamicTypeByName("spriteType");
-  var ob = a.createObject("");
-  stage.addChild(ob);
-  console.log("dynamic type: " + ob);*/
 }
 
 function update(){
@@ -578,7 +648,7 @@ function update(){
   renderer.render(stage);
 }
 
-},{"./../../engine/loader/assetManager.js":4,"./../../engine/loader/dataManager.js":5,"./../../engine/objectManagement/objectManager.js":8,"./../../engine/objectManagement/objectTypes/dynamicTypes.js":10,"./../../engine/sceneManagement/scene.js":12,"./../../engine/sceneManagement/sceneManager.js":13,"./scripts/types/spriteType.js":15,"pixi.js":1}],15:[function(require,module,exports){
+},{"./../../":28,"./scripts/types/spriteType.js":27,"pixi.js":1}],27:[function(require,module,exports){
 var pixi = require('pixi.js');
 
 var objectManager = require('./../../../../engine/objectManagement/objectManager.js');
@@ -604,4 +674,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../../../../engine/loader/assetManager.js":4,"./../../../../engine/objectManagement/objectManager.js":8,"pixi.js":1}]},{},[2]);
+},{"./../../../../engine/loader/assetManager.js":6,"./../../../../engine/objectManagement/objectManager.js":15,"pixi.js":1}],28:[function(require,module,exports){
+var core = module.exports = require('./engine/');
+
+},{"./engine/":5}]},{},[2]);
