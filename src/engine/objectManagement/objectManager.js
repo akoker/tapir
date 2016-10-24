@@ -19,13 +19,14 @@ var objectManager = exports;
 objectManager.objectBatch = [];
 
 objectManager.setCommonProperties = function(o, args){
+
   args.name != null ? o.name = args.name : o.name = "";
   args.x != null ? o.position.x = args.x : o.position.x = 0;
   args.y != null ? o.position.y = args.y : o.position.y = 0;
   args.visible != null ? o.visible = args.visible : o.visible = true;
   args.tag != null ? o.tag = args.tag : o.tag = "none";
-
-  
+  if(args.width != null) o.width = args.width;
+  if(args.height != null) o.height = args.height;
 
   return o;
 }

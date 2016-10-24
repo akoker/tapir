@@ -59,7 +59,7 @@ function assetsLoaded(){
   console.log("all assets are loaded!");
   //create scenes
   stage.addChild(new scene(dataManager.getSceneByName("slotScene")).container);
-  objectManager.getObjectByName("cliffhanger").makeInvisible();
+  
 }
 
 function update(){
