@@ -2,7 +2,7 @@
   "type": "sprite",
   "name": "uiAssets",
   "scene": "slotScene",
-  "pathPrefix": "/src/games/test/assets/uiAssets/",
+  "pathPrefix": "/games/test/assets/uiAssets/",
   "assets":[
     {
         "name" : "mainBackground",

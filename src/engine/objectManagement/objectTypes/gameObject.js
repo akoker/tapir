@@ -17,6 +17,10 @@ module.exports = function(){
 
     o = objectManager.setCommonProperties(o, args);
 
+    this.displayObject = o;
+
+    objectManager.registerObject(this);
+
     return o;
   }
 

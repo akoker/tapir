@@ -1,17 +1,22 @@
 "use strict";
 
 var pixi = require('pixi.js');
+var main = require('./../../');
 
-var dynamicTypes = require('./objectTypes/dynamicTypes.js');
+console.log(main);
 
-var gameObject = require('./objectTypes/gameObject.js');
-var container = require('./objectTypes/container.js');
+var objectTypes = require('./objectTypes');
 
-var assetManager = require('./../loader/assetManager.js');
+var dynamicTypes = objectTypes.dynamicTypes;
+var gameObject = objectTypes.gameObject;
+var container = objectTypes.container;
+
+var assetManager =  require('./../loader/assetManager.js');
+var manipulator = require('./../common/manipulations');
 
 var objectManager = exports;
 
-objectManager.objectBatch;
+objectManager.objectBatch = [];
 
 objectManager.setCommonProperties = function(o, args){
   args.name != null ? o.name = args.name : o.name = "";
@@ -19,6 +24,9 @@ objectManager.setCommonProperties = function(o, args){
   args.y != null ? o.position.y = args.y : o.position.y = 0;
   args.visible != null ? o.visible = args.visible : o.visible = true;
   args.tag != null ? o.tag = args.tag : o.tag = "none";
+
+  
+
   return o;
 }
 
@@ -37,8 +45,12 @@ objectManager.createObject = function(args){
   }
 }
 
-function registerObject(){
+objectManager.registerObject = function(o){
+  objectManager.objectBatch.push(o);
+}
 
+objectManager.getObjectByName = function(name){
+  return manipulator.searchArrayElemByName(name, objectManager.objectBatch);
 }
 
 function setObjectProperty(o, p, v){

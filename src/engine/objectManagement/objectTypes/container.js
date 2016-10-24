@@ -9,8 +9,11 @@ module.exports = function(){
     var o = new pixi.Container();
     o = objectManager.setCommonProperties(o, args);
 
+    this.displayObject = o;
+    objectManager.registerObject(this);
+
     return o;
   }
-  
+
   return this;
 }

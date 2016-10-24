@@ -1,6 +1,6 @@
 console.log("hello world");
 
-var gameManager = require('./games/test/gameManager.js');
+var gameManager = require('./../games/test/gameManager.js');
 
 //for unit testing
 //var dataReadTest = require('./unitTesting/dataReadTest.js');

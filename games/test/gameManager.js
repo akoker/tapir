@@ -4,7 +4,7 @@
 var pixi = require('pixi.js');
 
 //include framwork
-var tapir = require('./../../');
+var tapir = require('./../../src/');
 
 var scene = tapir.sceneManagement.scene;
 var objectManager = tapir.objectManagement.objectManager;
@@ -17,7 +17,7 @@ var dynamicTypes = tapir.objectManagement.objectTypes.dynamicTypes;
 var spriteType = require('./scripts/types/spriteType.js');
 
 //path of the JSON file containing game data to initialize the game
-var gameDataPath = ('src/games/test/data/game.json');
+var gameDataPath = ('games/test/data/game.json');
 
 //gameManager is the main class of the game
 var gameManager = exports;
@@ -39,10 +39,16 @@ gameManager.initGame = function(gameDataFilePath){
   update();
 }
 
-function loadAssets(){
-  console.log("started loading game!");
+function loadGameData(){
+  console.log("started loading game data!");
+  //loads all game data. callback function load assets is called after all data is loaded.
+  dataManager.loadAllGameData(gameDataPath, loadAssets);
+}
 
-  //load assets
+function loadAssets(){
+  console.log("started loading assets!");
+
+  //load assets. callback function assetsLoaded is called after all assets are loaded.
   assetManager.registerAllAssets(dataManager.assetData, assetsLoaded);
 
   //example of registering a dynamic object type
@@ -53,10 +59,7 @@ function assetsLoaded(){
   console.log("all assets are loaded!");
   //create scenes
   stage.addChild(new scene(dataManager.getSceneByName("slotScene")).container);
-}
-
-function loadGameData(){
-  dataManager.loadAllGameData(gameDataPath, loadAssets);
+  objectManager.getObjectByName("cliffhanger").makeInvisible();
 }
 
 function update(){

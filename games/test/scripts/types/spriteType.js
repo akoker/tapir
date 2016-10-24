@@ -1,7 +1,8 @@
 var pixi = require('pixi.js');
 
-var objectManager = require('./../../../../engine/objectManagement/objectManager.js');
-var assetManager = require('./../../../../engine/loader/assetManager.js');
+var tapir = require('./../../../../src');
+var objectManager = tapir.objectManagement.objectManager;
+var assetManager = tapir.loader.assetManager;
 
 module.exports = function(){
   this.dynTypeName = "spriteType";
@@ -17,8 +18,14 @@ module.exports = function(){
 
     o = objectManager.setCommonProperties(o, args);
 
+    this.displayObject = o;
+
+    objectManager.registerObject(this);
+
     return o;
   }
-
+  this.makeInvisible = function(){
+    this.displayObject.visible = false;
+  }
   return this;
 }

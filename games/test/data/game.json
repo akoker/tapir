@@ -1,0 +1,33 @@
+{
+  "name" : "testGame",
+  "properties":{
+    "totalLoadSize": 0
+  },
+  "dataFiles":{
+    "settingsFile": "/games/test/data/gameSettings.json"
+  },
+  "assetDataFiles":[
+    {
+      "name": "symbolTextureFile",
+      "path": "/games/test/data/assetData/symbolTextureAssets.json"
+    },
+    {
+      "name": "uiAssetsFile",
+      "path": "/games/test/data/assetData/uiAssets.json"
+    }
+  ],
+  "sceneFiles":[
+    {
+      "name": "slotScene",
+      "path": "/games/test/data/sceneData/slotScene.json"
+    },
+    {
+      "name": "bonusScene",
+      "path": "/games/test/data/sceneData/bonusScene.json"
+    },
+    {
+      "name": "gambleScene",
+      "path": "/games/test/data/sceneData/gambleScene.json"
+    }
+  ]
+}

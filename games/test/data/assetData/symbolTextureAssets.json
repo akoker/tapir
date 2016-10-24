@@ -2,7 +2,7 @@
   "type": "sprite",
   "scene": "slotScene",
   "name": "symbolTextures",
-  "pathPrefix": "/src/games/test/assets/symbols/symbolTextures/",
+  "pathPrefix": "/games/test/assets/symbols/symbolTextures/",
   "assets":[
     {
       "name": "symbol01",
