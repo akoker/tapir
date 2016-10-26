@@ -6,7 +6,7 @@ var pixi = require('pixi.js');
 module.exports = function(){
 
   this.createObject = function(args){
-    var o = new pixi.Container();
+    var o = new pixi.Container(true);
     o = objectManager.setCommonProperties(o, args);
 
     this.displayObject = o;

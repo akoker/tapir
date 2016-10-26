@@ -3,14 +3,12 @@
 var manipulator = exports;
 
 manipulator.searchArrayElemByName = function(name, array){
-  let returnVal = null;
-  //ES 6
-  array.forEach(o => {
-    if(o.name == name){
-      returnVal = o;
-    }
-  })
-  return returnVal;
+  for(let i = 0; i < array.length; i++){
+    let o = array[i];
+    if(o.name  == name)
+      return array[i];
+  }
+  return null;
 }
 
 manipulator.searchChildByName = function(name, object){

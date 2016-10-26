@@ -25,7 +25,7 @@ var gameManager = exports;
 //setting up renderer and stage
 var interactive = true;
 var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true});
-var stage = new pixi.Container();
+var stage = new pixi.Container(interactive);
 
 var gameDiv = document.getElementById('gameDiv');
 gameDiv.appendChild(renderer.view);
@@ -58,8 +58,9 @@ function loadAssets(){
 function assetsLoaded(){
   console.log("all assets are loaded!");
   //create scenes
-  stage.addChild(new scene(dataManager.getSceneByName("slotScene")).container);
-  
+  var s = new scene(dataManager.getSceneByName("slotScene")).container;
+  stage.addChild(s);
+
 }
 
 function update(){

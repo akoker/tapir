@@ -14,7 +14,7 @@
     "browserify": "^13.1.0",
     "pixi.js": "^4.0.3"
   },
-  "devdependencies": {
+  "devDependencies": {
     "beefy": "^2.1.8"
   }
 }

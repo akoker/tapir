@@ -13,7 +13,7 @@ var pixi = require('pixi.js');
 module.exports = function(data){
   this.name = data.name;
 
-  this.container = new pixi.Container();
+  this.container = new pixi.Container(true);
 
 
 /*member functions*************************************************************/

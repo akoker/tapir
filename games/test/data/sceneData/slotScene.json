@@ -6,7 +6,29 @@
         "name": "mainBG",
         "background": "uiAssets.mainBackground",
         "x": 0,
-        "y": 0
+        "y": 0,
+        "states":{
+          "init":{
+            "visible": true,
+            "executeFunction": {
+              "setState": "second"
+            }
+          },
+          "second":{
+            "y": 200,
+            "state": "third",
+            "background": "uiAssets.cliffhanger"
+          },
+          "third":{
+            "x": 400
+          },
+          "setObjectProperty":{
+            "target":"gameFrame",
+            "props":{
+              "background": "uiAssets.cliffhanger"
+            }
+          }
+        }
       },
       {
         "type": "object",
@@ -14,6 +36,35 @@
         "background": "uiAssets.frame",
         "x": 0,
         "y": 0,
+        "buttonMode": true,
+        "states":{
+          "first":{
+            "visible": "false"
+          }
+        },
+        "actions":{
+          "mouseOver":{
+            "setObjectProperty":{
+              "target":"mainBG",
+              "props":{
+                "x": 100,
+                "y": 200,
+                "background": "uiAssets.cliffhanger"
+              }
+            }
+          },
+          "mouseOut":{
+            "setObjectProperty":{
+              "target":"mainBG",
+              "props":{
+                "x": 0,
+                "y": 0,
+                "background": "uiAssets.mainBackground"
+              }
+            }
+          }
+        },
+        "buttonMode": true,
         "children": [
           {
               "type": "dynamicObject",

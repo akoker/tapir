@@ -26,7 +26,7 @@ var gameManager = exports;
 //setting up renderer and stage
 var interactive = true;
 var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true});
-var stage = new pixi.Container();
+var stage = new pixi.Container(interactive);
 
 var gameDiv = document.getElementById('gameDiv');
 gameDiv.appendChild(renderer.view);
@@ -59,8 +59,9 @@ function loadAssets(){
 function assetsLoaded(){
   console.log("all assets are loaded!");
   //create scenes
-  stage.addChild(new scene(dataManager.getSceneByName("slotScene")).container);
-  
+  var s = new scene(dataManager.getSceneByName("slotScene")).container;
+  stage.addChild(s);
+
 }
 
 function update(){
@@ -148,14 +149,12 @@ module.exports = {
 var manipulator = exports;
 
 manipulator.searchArrayElemByName = function(name, array){
-  let returnVal = null;
-  //ES 6
-  array.forEach(o => {
-    if(o.name == name){
-      returnVal = o;
-    }
-  })
-  return returnVal;
+  for(let i = 0; i < array.length; i++){
+    let o = array[i];
+    if(o.name  == name)
+      return array[i];
+  }
+  return null;
 }
 
 manipulator.searchChildByName = function(name, object){
@@ -452,8 +451,6 @@ module.exports = {
 var pixi = require('pixi.js');
 var main = require('./../../');
 
-console.log(main);
-
 var objectTypes = require('./objectTypes');
 
 var dynamicTypes = objectTypes.dynamicTypes;
@@ -476,8 +473,151 @@ objectManager.setCommonProperties = function(o, args){
   args.tag != null ? o.tag = args.tag : o.tag = "none";
   if(args.width != null) o.width = args.width;
   if(args.height != null) o.height = args.height;
+  if(args.states != null) o.states = args.states;
+  o.interactive = true;
+  args.buttonMode != null ? o.buttonMode = args.buttonMode : o.buttonMode = false;
+
+  o = objectManager.setCommonFunctions(o);
+
+  o = objectManager.registerActions(o, args);
+
+  if(args.state != null)o.setState(args.state);
 
   return o;
+}
+
+objectManager.registerActions = function(o, args){
+
+  if(args.actions!=null){
+    if(args.actions.mouseDown != null){
+      o.mousedown = function(){
+        o.processState(args.actions.mouseDown);
+      }
+    }
+    if(args.actions.mouseUp != null){
+      o.mouseup = function(){
+        o.processState(args.actions.mouseUp)
+      }
+    }
+    if(args.actions.mouseOver != null){
+      o.mouseover = function(){
+        o.processState(args.actions.mouseOver)
+      }
+    }
+    if(args.actions.mouseOut != null){
+      o.mouseout = function(){
+        o.processState(args.actions.mouseOut)
+      }
+    }
+    if(args.actions.click != null){
+      o.click = function(){
+        o.processState(args.actions.click)
+      }
+    }
+    if(args.actions.touchStart != null){
+      o.touchstart = function(){
+        o.processState(args.actions.touchstart)
+      }
+    }
+    if(args.actions.touchEnd != null){
+      o.touchend = function(){
+        o.processState(args.actions.touchend)
+      }
+    }
+    if(args.actions.tap != null){
+      o.tap = function(){
+        o.processState(args.actions.tap)
+      }
+    }
+    if(args.actions.mouseUpOutside != null){
+      o.mouseupoutside = function(mouseData){
+        o.mouseData = mouseData;
+        o.processState(args.actions.mouseUpOutside)
+      }
+    }
+    if(args.actions.mouseMove != null){
+      o.mousemove = function(mouseData){
+        o.mouseData = mouseData;
+        o.processState(args.actions.mouseMove)
+      }
+    }
+    if(args.actions.touchEndOutside != null){
+      o.touchendoutside = function(mouseData){
+        o.mouseData = mouseData;
+        o.processState(args.actions.touchEndOutside)
+      }
+    }
+    if(args.actions.touchMove != null){
+      o.touchmove = function(mouseData){
+        o.mouseData = mouseData;
+        o.processState(args.actions.touchMove)
+      }
+    }
+  }
+  return o;
+}
+
+objectManager.setCommonFunctions = function(o){
+
+  o.setProperty = function(args){
+    args.foreach(e => {
+      o[e.property] = e.value;
+    })
+  }
+
+  o.executeFunction = function(name, args){
+    o[name](args);
+  }
+
+  o.background = function(assetID){
+    var assetNameArr = assetID.split(".");
+    var batch = assetManager.findBatchByName(assetNameArr[0]);
+
+    o.texture = batch.loader.resources[assetNameArr[1]].texture;
+  }
+
+  o.setProperty = function(args){
+    //list of properties to set
+    var propNames = args;
+
+    //processes every key in the properties list and applies them to the object
+    Object.keys(propNames).forEach(key => {
+      //property set also can be defined as function such as "background"
+      //where displayObject texture has to be changed and applied
+      if(o[key].constructor === Function)
+        o.executeFunction(key, propNames[key]);
+      else
+        //or it's a property to set.
+        o[key] = propNames[key];
+    });
+  }
+
+  o.setObjectProperty = function(args){
+    var objToSet = objectManager.getObjectByName(args.target);
+    objToSet.displayObject.setProperty(args.props);
+  }
+
+  o.processState = function(args){
+    Object.keys(args).forEach(key => {
+      if(key != "state" && o[key].constructor === Function){
+        o.executeFunction(key, args[key]);
+      }else if(key == "state")
+        o.setState(args[key]);
+      else
+        o[key] = args[key];
+    });
+  }
+
+  o.setState = function(stateName){
+    var args = o.states[stateName];
+    o.processState(args);
+  }
+
+  return o;
+}
+
+objectManager.processProperty = function(o){
+
 }
 
 objectManager.createObject = function(args){
@@ -500,11 +640,13 @@ objectManager.registerObject = function(o){
 }
 
 objectManager.getObjectByName = function(name){
-  return manipulator.searchArrayElemByName(name, objectManager.objectBatch);
+  let v = manipulator.searchArrayElemByName(name, objectManager.objectBatch);
+  return v;
 }
 
-function setObjectProperty(o, p, v){
-  o[p] = v;
+//TO-DO
+objectManager.broadcastMessage = function(o, args){
+
 }
 
 },{"./../../":28,"./../common/manipulations":6,"./../loader/assetManager.js":8,"./objectTypes":23,"pixi.js":3}],18:[function(require,module,exports){
@@ -521,7 +663,7 @@ var pixi = require('pixi.js');
 module.exports = function(){
 
   this.createObject = function(args){
-    var o = new pixi.Container();
+    var o = new pixi.Container(true);
     o = objectManager.setCommonProperties(o, args);
 
     this.displayObject = o;
@@ -558,7 +700,7 @@ var pixi = require('pixi.js');
 module.exports = function(){
 
   this.createObject = function(args){
-    this.name = args;
+    this.name = args.name;
     //find corresponding loader
     var assetNameArr = args.background.split(".");
 
@@ -567,6 +709,8 @@ module.exports = function(){
     var o = new pixi.Sprite(batch.loader.resources[assetNameArr[1]].texture);
 
     o = objectManager.setCommonProperties(o, args);
+
+    o.parentObj = this;
 
     this.displayObject = o;
 
@@ -612,7 +756,7 @@ var pixi = require('pixi.js');
 module.exports = function(data){
   this.name = data.name;
 
-  this.container = new pixi.Container();
+  this.container = new pixi.Container(true);
 
 
 /*member functions*************************************************************/

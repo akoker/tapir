@@ -7,7 +7,7 @@ var pixi = require('pixi.js');
 module.exports = function(){
 
   this.createObject = function(args){
-    this.name = args;
+    this.name = args.name;
     //find corresponding loader
     var assetNameArr = args.background.split(".");
 
@@ -16,6 +16,8 @@ module.exports = function(){
     var o = new pixi.Sprite(batch.loader.resources[assetNameArr[1]].texture);
 
     o = objectManager.setCommonProperties(o, args);
+
+    o.parentObj = this;
 
     this.displayObject = o;
 
