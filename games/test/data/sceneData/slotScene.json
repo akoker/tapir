@@ -8,26 +8,7 @@
         "x": 0,
         "y": 0,
         "states":{
-          "init":{
-            "visible": true,
-            "executeFunction": {
-              "setState": "second"
-            }
-          },
-          "second":{
-            "y": 200,
-            "state": "third",
-            "background": "uiAssets.cliffhanger"
-          },
-          "third":{
-            "x": 400
-          },
-          "setObjectProperty":{
-            "target":"gameFrame",
-            "props":{
-              "background": "uiAssets.cliffhanger"
-            }
-          }
+
         }
       },
       {
@@ -36,35 +17,11 @@
         "background": "uiAssets.frame",
         "x": 0,
         "y": 0,
-        "buttonMode": true,
         "states":{
           "first":{
             "visible": "false"
           }
         },
-        "actions":{
-          "mouseOver":{
-            "setObjectProperty":{
-              "target":"mainBG",
-              "props":{
-                "x": 100,
-                "y": 200,
-                "background": "uiAssets.cliffhanger"
-              }
-            }
-          },
-          "mouseOut":{
-            "setObjectProperty":{
-              "target":"mainBG",
-              "props":{
-                "x": 0,
-                "y": 0,
-                "background": "uiAssets.mainBackground"
-              }
-            }
-          }
-        },
-        "buttonMode": true,
         "children": [
           {
               "type": "dynamicObject",
@@ -75,6 +32,29 @@
               "y": 200
           }
         ]
+      },
+      {
+        "type": "button",
+        "name": "spin",
+        "background": "uiAssets.btnSpin",
+        "toggleButton": true,
+        "images":{
+          "default": "uiAssets.btnSpin",
+          "active": "uiAssets.btnSpinActive",
+          "passive": "uiAssets.btnSpinPassive",
+          "over": "uiAssets.btnSpinOver",
+          "clicked": "uiAssets.btnSpinDown"
+        },
+        "actions":{
+          "click": {
+            "executeDynamicCode":{
+              "code": "gameManager.startSpin();"
+            }
+          }
+        },
+        "x": 540,
+        "y": 580,
+        "buttonMode": true
       }
     ]
 }

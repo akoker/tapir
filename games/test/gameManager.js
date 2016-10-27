@@ -6,11 +6,16 @@ var pixi = require('pixi.js');
 //include framwork
 var tapir = require('./../../src/');
 
+//gameManager is the main class of the game
+var gameManager = exports;
+
+//managers are assigned to the game Manager to be reachable from dynamic code
+gameManager.objectManager = tapir.objectManagement.objectManager;
+gameManager.sceneManager = tapir.sceneManagement.sceneManager;
+gameManager.dataManager = tapir.loader.dataManager;
+gameManager.assetManager = tapir.loader.assetManager;
+
 var scene = tapir.sceneManagement.scene;
-var objectManager = tapir.objectManagement.objectManager;
-var sceneManager = tapir.sceneManagement.sceneManager;
-var dataManager = tapir.loader.dataManager;
-var assetManager = tapir.loader.assetManager;
 var dynamicTypes = tapir.objectManagement.objectTypes.dynamicTypes;
 
 //a custom object type declaration example
@@ -19,16 +24,15 @@ var spriteType = require('./scripts/types/spriteType.js');
 //path of the JSON file containing game data to initialize the game
 var gameDataPath = ('games/test/data/game.json');
 
-//gameManager is the main class of the game
-var gameManager = exports;
-
 //setting up renderer and stage
-var interactive = true;
 var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true});
-var stage = new pixi.Container(interactive);
+var stage = new pixi.Container();
 
 var gameDiv = document.getElementById('gameDiv');
 gameDiv.appendChild(renderer.view);
+
+//add gameManager to the window so that the dynamic code can reach namespace
+window.gameManager = gameManager;
 
 //function to initialize the game
 gameManager.initGame = function(gameDataFilePath){
@@ -39,17 +43,21 @@ gameManager.initGame = function(gameDataFilePath){
   update();
 }
 
+gameManager.startSpin = function(){
+  console.log("spin start function is invoked");
+}
+
 function loadGameData(){
   console.log("started loading game data!");
   //loads all game data. callback function load assets is called after all data is loaded.
-  dataManager.loadAllGameData(gameDataPath, loadAssets);
+  gameManager.dataManager.loadAllGameData(gameDataPath, loadAssets);
 }
 
 function loadAssets(){
   console.log("started loading assets!");
 
   //load assets. callback function assetsLoaded is called after all assets are loaded.
-  assetManager.registerAllAssets(dataManager.assetData, assetsLoaded);
+  gameManager.assetManager.registerAllAssets(gameManager.dataManager.assetData, assetsLoaded);
 
   //example of registering a dynamic object type
   dynamicTypes.registerDynamicObjectType(new spriteType());
@@ -58,7 +66,7 @@ function loadAssets(){
 function assetsLoaded(){
   console.log("all assets are loaded!");
   //create scenes
-  var s = new scene(dataManager.getSceneByName("slotScene")).container;
+  var s = new scene(gameManager.dataManager.getSceneByName("slotScene")).container;
   stage.addChild(s);
 
 }

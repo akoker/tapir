@@ -25,6 +25,22 @@
         "path": "btnSpin.png"
     },
     {
+        "name" : "btnSpinActive",
+        "path": "btnSpinActive.png"
+    },
+    {
+        "name" : "btnSpinPassive",
+        "path": "btnSpinPassive.png"
+    },
+    {
+        "name" : "btnSpinOver",
+        "path": "btnSpinOver.png"
+    },
+    {
+        "name" : "btnSpinDown",
+        "path": "btnSpinDown.png"
+    },
+    {
         "name": "btnPaytable",
         "path": "paytable.png"
     },

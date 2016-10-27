@@ -8,6 +8,7 @@ var objectTypes = require('./objectTypes');
 var dynamicTypes = objectTypes.dynamicTypes;
 var gameObject = objectTypes.gameObject;
 var container = objectTypes.container;
+var button = objectTypes.button;
 
 var assetManager =  require('./../loader/assetManager.js');
 var manipulator = require('./../common/manipulations');
@@ -28,10 +29,6 @@ objectManager.setCommonProperties = function(o, args){
   if(args.states != null) o.states = args.states;
   o.interactive = true;
   args.buttonMode != null ? o.buttonMode = args.buttonMode : o.buttonMode = false;
-
-  o = objectManager.setCommonFunctions(o);
-
-  o = objectManager.registerActions(o, args);
 
   if(args.state != null)o.setState(args.state);
 
@@ -129,18 +126,15 @@ objectManager.setCommonFunctions = function(o){
   }
 
   o.setProperty = function(args){
-    //list of properties to set
-    var propNames = args;
-
     //processes every key in the properties list and applies them to the object
-    Object.keys(propNames).forEach(key => {
+    Object.keys(args).forEach(key => {
       //property set also can be defined as function such as "background"
       //where displayObject texture has to be changed and applied
       if(o[key].constructor === Function)
-        o.executeFunction(key, propNames[key]);
+        o.executeFunction(key, args[key]);
       else
         //or it's a property to set.
-        o[key] = propNames[key];
+        o[key] = args[key];
     });
   }
 
@@ -150,14 +144,28 @@ objectManager.setCommonFunctions = function(o){
   }
 
   o.processState = function(args){
-    Object.keys(args).forEach(key => {
-      if(key != "state" && o[key].constructor === Function){
-        o.executeFunction(key, args[key]);
-      }else if(key == "state")
-        o.setState(args[key]);
-      else
-        o[key] = args[key];
-    });
+    if(args.constructor !== Array){
+      Object.keys(args).forEach(key => {
+        if(key != "state" && o[key].constructor === Function){
+          o.executeFunction(key, args[key]);
+        }else if(key == "state")
+          o.setState(args[key]);
+        else
+          o[key] = args[key];
+      });
+    }
+    else{
+      args.forEach(elm => {
+        Object.keys(elm).forEach(key => {
+          if(key != "state" && o[key].constructor === Function){
+            o.executeFunction(key, elm[key]);
+          }else if(key == "state")
+            o.setState(elm[key]);
+          else
+            o[key] = elm[key];
+        });
+      })
+    }
   }
 
   o.setState = function(stateName){
@@ -165,6 +173,38 @@ objectManager.setCommonFunctions = function(o){
     o.processState(args);
   }
 
+  o.executeDynamicCode = function(funcData){
+
+    //determine if code in json file is written multi-line or single-line
+    var codePart;
+    if(funcData.code.constructor === Array){
+      codePart = funcData.code.join(" ");
+    }else {
+      codePart = funcData.code;
+    }
+
+    var f = Function(codePart);
+    f();
+  }
+
+  o.registerDynamicFunction = function(funcData){
+    //determine if code in json file is written multi-line or single-line
+    var codePart;
+    if(funcData.code.constructor === Array){
+      codePart = funcData.code.join(" ");
+    }else {
+      codePart = funcData.code;
+    }
+
+    let f = Function(...funcData.args, codePart);
+
+    gameManager[funcData.functionName] = f;
+  }
+
+  o.executeDynamicFunction = function(funcData){
+    let f = gameManager[funcData.functionName];
+    f(...funcData.args);
+  }
   return o;
 }
 
@@ -178,6 +218,8 @@ objectManager.createObject = function(args){
       return new gameObject().createObject(args);
     case "container":
       return new container().createObject(args);
+    case "button":
+      return  new button().createObject(args);
     case "textObject":
       return "";
     case "dynamicObject":
@@ -194,6 +236,15 @@ objectManager.registerObject = function(o){
 objectManager.getObjectByName = function(name){
   let v = manipulator.searchArrayElemByName(name, objectManager.objectBatch);
   return v;
+}
+
+objectManager.registerFunctionToObject = function(objectName, functionName, f){
+  var o = objectManager.getObjectByName(objectName);
+  o[functionName] = f;
+}
+
+objectManager.registerFunction = function(functionName, f){
+  objectManager[functionName] = f;
 }
 
 //TO-DO
