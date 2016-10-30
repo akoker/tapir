@@ -14,6 +14,8 @@ gameManager.objectManager = tapir.objectManagement.objectManager;
 gameManager.sceneManager = tapir.sceneManagement.sceneManager;
 gameManager.dataManager = tapir.loader.dataManager;
 gameManager.assetManager = tapir.loader.assetManager;
+gameManager.reelLines = require('./scripts/reels/reelLines.js');
+gameManager.spinning = false;
 
 var scene = tapir.sceneManagement.scene;
 var dynamicTypes = tapir.objectManagement.objectTypes.dynamicTypes;
@@ -44,7 +46,34 @@ gameManager.initGame = function(gameDataFilePath){
 }
 
 gameManager.startSpin = function(){
-  console.log("spin start function is invoked");
+  var text = gameManager.objectManager.getObjectByName("spinText");
+  if(gameManager.spinning){
+    gameManager.spinning = false;
+    text.displayObject.content("SPIN");
+  }
+  else{
+    gameManager.spinning = true;
+    text.displayObject.content("STOP");
+  }
+}
+
+gameManager.drawLine = function(v){
+  var lineBtnCont = gameManager.objectManager.getObjectByName("lineButtonContainer");
+  lineBtnCont.displayObject.children.forEach(elm =>{
+    if(elm.name == ("btnLine" + v)){
+      elm.setState("selected");
+      elm.clicked = true;
+    }
+    else{
+      elm.setState("init");
+      elm.clicked = false;
+    }
+  });
+
+  var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
+  if(lnCont.displayObject.children != null)
+    lnCont.displayObject.removeChildren();
+  lnCont.displayObject.addChild(gameManager.reelLines.drawLine(v));
 }
 
 function loadGameData(){

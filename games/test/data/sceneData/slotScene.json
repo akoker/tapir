@@ -24,18 +24,18 @@
         },
         "children": [
           {
-              "type": "dynamicObject",
-              "name": "cliffhanger",
-              "dynTypeName": "spriteType",
-              "background": "uiAssets.cliffhanger",
-              "x": 1050,
-              "y": 200
+            "type": "dynamicObject",
+            "name": "cliffhanger",
+            "dynTypeName": "spriteType",
+            "background": "uiAssets.cliffhanger",
+            "x": 1050,
+            "y": 200
           }
         ]
       },
       {
         "type": "button",
-        "name": "spin",
+        "name": "btnSpin",
         "background": "uiAssets.btnSpin",
         "toggleButton": true,
         "images":{
@@ -45,16 +45,341 @@
           "over": "uiAssets.btnSpinOver",
           "clicked": "uiAssets.btnSpinDown"
         },
+        "children":[
+            {
+                "type": "textObject",
+                "name": "spinText",
+                "content": "SPIN",
+                "x": 68,
+                "y": 90,
+                "props":{
+                    "fontSize": 25,
+                    "fill": "0x234567"
+                }
+            }
+        ],
         "actions":{
           "click": {
             "executeDynamicCode":{
               "code": "gameManager.startSpin();"
             }
+          },
+          "clicked":{
           }
         },
         "x": 540,
         "y": 580,
         "buttonMode": true
+      },
+      {
+          "type": "object",
+          "name": "lineContainer",
+          "background": "uiAssets.transparentBG",
+          "x": 0,
+          "y": 0
+      },
+      {
+          "type": "object",
+          "name": "gameLogo",
+          "background": "uiAssets.logo",
+          "x": 400,
+          "y": -20
+      },
+      {
+          "type": "object",
+          "name": "animationContainer",
+          "background": "uiAssets.transparentBG",
+          "x": 0,
+          "y": 0
+      },
+      {
+          "type": "object",
+          "name": "paytable",
+          "background": "uiAssets.window_2",
+          "x": 190,
+          "y": 150,
+          "visible": false,
+          "children":[
+              {
+                  "type": "object",
+                  "name": "symbolValues",
+                  "background": "uiAssets.symbolValues",
+                  "x": 50,
+                  "y": 50
+              },
+              {
+                  "type": "object",
+                  "name": "btnPaytableClose",
+                  "background": "uiAssets.btnClose",
+                  "x": 850,
+                  "y": -10,
+                  "buttonMode": true,
+                  "actions":{
+                    "mouseDown":{
+                      "setObjectProperty":{
+                        "target":"paytable",
+                        "props":{
+                          "visible": false
+                        }
+                      }
+                    }
+                  }
+              }
+          ]
+      },
+      {
+        "type": "object",
+        "name": "btnPaytable",
+        "background": "uiAssets.btnPaytable",
+        "x": 1100,
+        "y": 50,
+        "buttonMode": true,
+        "actions":{
+          "mouseDown":{
+            "setObjectProperty":{
+              "target":"paytable",
+              "props":{
+                "visible": true
+              }
+            }
+          }
+        }
+      },
+      {
+        "type": "object",
+        "name": "lineButtonContainer",
+        "interactive": true,
+        "buttonMode": true,
+        "background": "uiAssets.transparentBG",
+        "x": 100,
+        "y": 100,
+        "children":[
+          {
+            "type": "button",
+            "name": "btnLine1",
+            "x": 0,
+            "y": 0,
+            "images":{
+              "default": "uiAssets.lineBtn1Passive",
+              "over": "uiAssets.lineBtn1"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(1);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn1Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn1"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLine2",
+            "x": 0,
+            "y": 50,
+            "images":{
+              "default": "uiAssets.lineBtn2Passive",
+              "over": "uiAssets.lineBtn2"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(2);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn2Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn2"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLine3",
+            "x": 0,
+            "y": 100,
+            "images":{
+              "default": "uiAssets.lineBtn3Passive",
+              "over": "uiAssets.lineBtn3"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(3);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn3Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn3"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLine4",
+            "x": 0,
+            "y": 150,
+            "images":{
+              "default": "uiAssets.lineBtn4Passive",
+              "over": "uiAssets.lineBtn4"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(4);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn4Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn4"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLine5",
+            "x": 0,
+            "y": 200,
+            "images":{
+              "default": "uiAssets.lineBtn5Passive",
+              "over": "uiAssets.lineBtn5"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(5);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn5Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn5"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLine6",
+            "x": 0,
+            "y": 250,
+            "images":{
+              "default": "uiAssets.lineBtn6Passive",
+              "over": "uiAssets.lineBtn6"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(6);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn6Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn6"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLine7",
+            "x": 0,
+            "y": 300,
+            "images":{
+              "default": "uiAssets.lineBtn7Passive",
+              "over": "uiAssets.lineBtn7"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(7);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn7Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn7"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLine8",
+            "x": 0,
+            "y": 350,
+            "images":{
+              "default": "uiAssets.lineBtn8Passive",
+              "over": "uiAssets.lineBtn8"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(8);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn8Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn8"
+              }
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLine9",
+            "x": 0,
+            "y": 400,
+            "images":{
+              "default": "uiAssets.lineBtn9Passive",
+              "over": "uiAssets.lineBtn9"
+            },
+            "actions":{
+              "click": {
+                "executeDynamicCode":{
+                  "code": "gameManager.drawLine(9);"
+                }
+              }
+            },
+            "states":{
+              "init":{
+                "background": "uiAssets.lineBtn9Passive"
+              },
+              "selected":{
+                "background": "uiAssets.lineBtn9"
+              }
+            }
+          }
+        ]
       }
     ]
 }

@@ -47,6 +47,14 @@ module.exports = function(){
 
     objectManager.registerObject(this);
 
+    o.setTexture = function(texture){
+      let a = texture.split(".");
+
+      let b = assetManager.findBatchByName(a[0]);
+
+      o.texture = b.loader.resources[a[1]].texture;
+    }
+
     o.mousedown = function(){
       if(args.actions != null && args.actions.mouseDown != null)
         o.processState(args.actions.mouseDown);
@@ -62,11 +70,11 @@ module.exports = function(){
         if(o.toggleButton){
           if(!o.clicked){
             if(o.overImage != null)
-              setTexture(o.overImage);
+              o.setTexture(o.overImage);
           }
         }else {
           if(o.overImage != null)
-            setTexture(o.overImage);
+            o.setTexture(o.overImage);
         }
       }
       if(args.actions != null && args.actions.mouseOver != null)
@@ -74,23 +82,15 @@ module.exports = function(){
     }
 
     o.mouseout = function(){
-      if(o.active){
-        if(o.toggleButton){
-          if(!o.clicked){
-            setTexture(o.defaultImage);
-          }
-        }
-        else
-          setTexture(o.defaultImage);
-      }
-
+      if(o.active && !o.clicked)
+          o.setTexture(o.defaultImage);
       if(args.actions != null && args.actions.mouseOut != null)
         o.processState(args.actions.mouseOut)
     }
 
     o.click = function(){
       if(o.toggleButton)
-        toggle();
+        o.toggle();
       if(args.actions != null && args.actions.click != null)
         o.processState(args.actions.click)
     }
@@ -137,31 +137,45 @@ module.exports = function(){
 */
 
     o.setActive = function(v){
+      if(o.active){
+        o.setTexture(o.passiveImage);
+      }
+      else{
+        if(o.activeImage != null)
+          o.setTexture(o.activeImage);
+        else
+          o.setTexture(o.defaultImage);
+      }
       o.active = v;
     }
 
-    function toggle(){
-      console.log("toggling");
+    o.toggleActive = function(){
+      if(o.active){
+        o.setTexture(o.passiveImage);
+        o.active = false;
+      }
+      else{
+        if(o.activeImage != null)
+          o.setTexture(o.activeImage);
+        else
+          o.setTexture(o.defaultImage);
+
+        o.active = true;
+      }
+    }
+
+    o.toggle = function(){
       if(o.toggleButton && o.active){
         if(!o.clicked){
           o.clicked = true;
           if(o.clickedImage!=null)
-            setTexture(o.clickedImage);
+            o.setTexture(o.clickedImage);
         }else{
           o.clicked = false;
-          setTexture(o.defaultImage);
+          o.setTexture(o.defaultImage);
         }
       }
     }
-
-    function setTexture(texture){
-      let a = texture.split(".");
-
-      let b = assetManager.findBatchByName(a[0]);
-
-      o.texture = b.loader.resources[a[1]].texture;
-    }
-
     return o;
   }
 

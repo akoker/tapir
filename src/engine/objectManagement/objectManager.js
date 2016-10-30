@@ -9,6 +9,7 @@ var dynamicTypes = objectTypes.dynamicTypes;
 var gameObject = objectTypes.gameObject;
 var container = objectTypes.container;
 var button = objectTypes.button;
+var textObject = objectTypes.textObject;
 
 var assetManager =  require('./../loader/assetManager.js');
 var manipulator = require('./../common/manipulations');
@@ -140,6 +141,7 @@ objectManager.setCommonFunctions = function(o){
 
   o.setObjectProperty = function(args){
     var objToSet = objectManager.getObjectByName(args.target);
+    console.log("setting object property " + objToSet.displayObject.name);
     objToSet.displayObject.setProperty(args.props);
   }
 
@@ -221,7 +223,7 @@ objectManager.createObject = function(args){
     case "button":
       return  new button().createObject(args);
     case "textObject":
-      return "";
+      return new textObject().createObject(args);
     case "dynamicObject":
       return dynamicTypes.searchDynamicTypeByName(args.dynTypeName).createObject(args);
     default:

@@ -12,6 +12,8 @@ var toLoad;
 
 //array of objects of asset batches
 assetManager.assets = [];
+assetManager.anims = [];
+assetManager.sounds = [];
 //assetManager.defaultBatches = ["ui", "symbols", "symbolAnims", "slotAnims",
 //                              "bonus", "bonusAnims", "gamble", "gambleAnims"]
 

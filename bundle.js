@@ -1,4 +1,18 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+console.log("hello world");
+
+var gameManager = require('./games/test/gameManager.js');
+
+//for unit testing
+//var dataReadTest = require('./unitTesting/dataReadTest.js');
+//dataReadTest.test();
+
+
+var gameFile = '/games/test/data/game.json';
+
+gameManager.initGame(gameFile);
+
+},{"./games/test/gameManager.js":2}],2:[function(require,module,exports){
 "use strict";
 
 //include pixi
@@ -15,6 +29,8 @@ gameManager.objectManager = tapir.objectManagement.objectManager;
 gameManager.sceneManager = tapir.sceneManagement.sceneManager;
 gameManager.dataManager = tapir.loader.dataManager;
 gameManager.assetManager = tapir.loader.assetManager;
+gameManager.reelLines = require('./scripts/reels/reelLines.js');
+gameManager.spinning = false;
 
 var scene = tapir.sceneManagement.scene;
 var dynamicTypes = tapir.objectManagement.objectTypes.dynamicTypes;
@@ -45,7 +61,34 @@ gameManager.initGame = function(gameDataFilePath){
 }
 
 gameManager.startSpin = function(){
-  console.log("spin start function is invoked");
+  var text = gameManager.objectManager.getObjectByName("spinText");
+  if(gameManager.spinning){
+    gameManager.spinning = false;
+    text.displayObject.content("SPIN");
+  }
+  else{
+    gameManager.spinning = true;
+    text.displayObject.content("STOP");
+  }
+}
+
+gameManager.drawLine = function(v){
+  var lineBtnCont = gameManager.objectManager.getObjectByName("lineButtonContainer");
+  lineBtnCont.displayObject.children.forEach(elm =>{
+    if(elm.name == ("btnLine" + v)){
+      elm.setState("selected");
+      elm.clicked = true;
+    }
+    else{
+      elm.setState("init");
+      elm.clicked = false;
+    }
+  });
+
+  var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
+  if(lnCont.displayObject.children != null)
+    lnCont.displayObject.removeChildren();
+  lnCont.displayObject.addChild(gameManager.reelLines.drawLine(v));
 }
 
 function loadGameData(){
@@ -77,7 +120,109 @@ function update(){
   renderer.render(stage);
 }
 
-},{"./../../src/":28,"./scripts/types/spriteType.js":2,"pixi.js":3}],2:[function(require,module,exports){
+},{"./../../src/":29,"./scripts/reels/reelLines.js":3,"./scripts/types/spriteType.js":4,"pixi.js":5}],3:[function(require,module,exports){
+var PIXI = require('pixi.js');
+var reelLines = exports;
+var gameManager = require('./../../gameManager.js');
+
+//list of winning lines
+var p = [
+    [2,2,1,2,2],
+    [0,0,1,0,0],
+    [1,2,2,2,1],
+    [2,1,1,1,2],
+    [0,0,0,0,0],
+    [1,1,1,1,1],
+    [2,2,2,2,2],
+    [2,1,0,1,2],
+    [0,1,2,1,0]
+]
+//var p = [2,1,1,2,0];
+var pArgs = new Object();
+pArgs.leftPos = 260;
+pArgs.rightPos = 740;
+pArgs.topMargin = 124;
+pArgs.symbolWidth = 144;
+pArgs.symbolHeight = 144;
+pArgs.reelMargin = 10;
+pArgs.numberOfReels = 5;
+pArgs.numberOfLines = 9;
+
+//draw only possible line
+reelLines.drawLine = function (index){
+    var g = new PIXI.Graphics();
+    g.lineStyle(4, 0xffd900, 1);
+    var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
+    var name = "btnLine" + (index);
+    var sP = gameManager.objectManager.getObjectByName(name).displayObject;
+    g.moveTo(btnCont.x + sP.position.x + 50, btnCont.y + sP.position.y + 25);
+    for(var i = 0; i < pArgs.numberOfReels; i++){
+        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
+        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
+    }
+
+    g.endFill();
+
+    return g;
+}
+
+//draws winning line with squares
+reelLines.drawWinningLine = function (index, count){
+    console.log("drawing winning line: " + index);
+    var g = new PIXI.Graphics();
+    g.lineStyle(4, 0xaad900, 1);
+
+    var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer");
+    var name = "btnLine" + (index);
+    var sP = gameManager.objectManager.getObjectByName(name);
+    console.log("sp.y = " + sP.y);
+    g.moveTo(btnCont.position.x + sP.position.x + 50, btnCont.position.y + sP.position.y + 25);
+    g.lineTo(pArgs.leftPos, pArgs.topMargin + pArgs.symbolHeight*p[index][0] + pArgs.symbolHeight/2);
+    for(var i = 0; i < count-1; i++){
+        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth + pArgs.reelMargin, pArgs.topMargin + pArgs.symbolHeight*p[index][i+1] + pArgs.symbolHeight/2);
+    }
+    g.moveTo(pArgs.leftPos + pArgs.reelMargin*(count-1) + (count)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][count-1] + pArgs.symbolHeight/2);
+    for(i = count; i < 5; i++){
+        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+    }
+    for(var i = 0; i < count; i++){
+        g.drawRect(pArgs.leftPos + i*pArgs.symbolWidth + i*pArgs.reelMargin, p[index][i]*pArgs.symbolHeight + pArgs.topMargin, pArgs.symbolWidth, pArgs.symbolHeight);
+    }
+
+
+    g.endFill();
+    return g;
+}
+
+reelLines.animateWinningLines = function(winArr){
+    console.log("winning lines are being animated " + winArr);
+    var f = winArr[0][0]-1;
+    var g = winArr[0][1];
+    console.log("f: " + f + " g: " + g);
+    return reelLines.drawWinningLine(f,g);
+}
+
+//randomizes reel line data so that you can see it works on all conditions
+function randomizeReelLines(){
+    for(var i = 0; i < pArgs.numberOfReels; i++){
+        p[i] = Math.floor((Math.random() * 3) + 0)
+    }
+    console.log("winning line: " + p[0] + " " + p[1] + " " + p[2] + " " + p[3] + " " + p[4]);
+}
+
+function normalizeIndexNumber(ind, arraySize){
+    if(ind < 0){
+        return Math.abs(arraySize + ind);
+    }
+    if(ind >= arraySize){
+        return Math.abs(arraySize - ind);
+    }else
+        return ind;
+}
+
+},{"./../../gameManager.js":2,"pixi.js":5}],4:[function(require,module,exports){
 var pixi = require('pixi.js');
 
 var tapir = require('./../../../../src');
@@ -110,7 +255,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../../../../src":28,"pixi.js":3}],3:[function(require,module,exports){
+},{"./../../../../src":29,"pixi.js":5}],5:[function(require,module,exports){
 (function (global){
 /*!
  * pixi.js - v4.0.3
@@ -132,26 +277,12 @@ this.processInteractive(this.mouse.global,this.renderer._lastObjectRendered,this
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],4:[function(require,module,exports){
-console.log("hello world");
-
-var gameManager = require('./../games/test/gameManager.js');
-
-//for unit testing
-//var dataReadTest = require('./unitTesting/dataReadTest.js');
-//dataReadTest.test();
-
-
-var gameFile = '../src/games/test/data/game.json';
-
-gameManager.initGame(gameFile);
-
-},{"./../games/test/gameManager.js":1}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports = {
     manipulator:     require('./manipulations')
 };
 
-},{"./manipulations":6}],6:[function(require,module,exports){
+},{"./manipulations":7}],7:[function(require,module,exports){
 "use strict";
 
 var manipulator = exports;
@@ -184,7 +315,7 @@ manipulator.searchArrayElemByPropName = function(propName, propValue, array){
   return null;
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = {
     common: require('./common/'),
     loader: require('./loader/'),
@@ -192,7 +323,7 @@ module.exports = {
     objectManagement : require('./objectManagement/')
 };
 
-},{"./common/":5,"./loader/":10,"./objectManagement/":16,"./sceneManagement/":25}],8:[function(require,module,exports){
+},{"./common/":6,"./loader/":11,"./objectManagement/":17,"./sceneManagement/":26}],9:[function(require,module,exports){
 "use strict";
 
 var assetManager = exports;
@@ -207,6 +338,8 @@ var toLoad;
 
 //array of objects of asset batches
 assetManager.assets = [];
+assetManager.anims = [];
+assetManager.sounds = [];
 //assetManager.defaultBatches = ["ui", "symbols", "symbolAnims", "slotAnims",
 //                              "bonus", "bonusAnims", "gamble", "gambleAnims"]
 
@@ -269,7 +402,7 @@ assetManager.findBatchBySceneName = function(sceneName){
   return manipulator.searchArrayElemByPropName("scene", sceneName, assetManager.assets);
 }
 
-},{"./../common/manipulations.js":6,"./loaders/assetLoader.js":11,"./loaders/fileLoader.js":12}],9:[function(require,module,exports){
+},{"./../common/manipulations.js":7,"./loaders/assetLoader.js":12,"./loaders/fileLoader.js":13}],10:[function(require,module,exports){
 "use strict";
 
 var dataManager = exports;
@@ -355,14 +488,14 @@ function checkFinished(total){
     return false;
 }
 
-},{"./../common/manipulations.js":6,"./loaders/fileLoader.js":12}],10:[function(require,module,exports){
+},{"./../common/manipulations.js":7,"./loaders/fileLoader.js":13}],11:[function(require,module,exports){
 module.exports = {
     loaders: require('./loaders/'),
     assetManager: require('./assetManager'),
     dataManager : require('./dataManager')
 };
 
-},{"./assetManager":8,"./dataManager":9,"./loaders/":14}],11:[function(require,module,exports){
+},{"./assetManager":9,"./dataManager":10,"./loaders/":15}],12:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -397,7 +530,7 @@ module.exports = function(args){
     return this;
 }
 
-},{"pixi.js":3}],12:[function(require,module,exports){
+},{"pixi.js":5}],13:[function(require,module,exports){
 "use strict";
 
 var fileLoader = exports;
@@ -433,10 +566,10 @@ fileLoader.loadFile = function (path, callback, callbackVar = null, type = "json
     fileObject.send(null);
 }
 
-},{"./../dataManager.js":9}],13:[function(require,module,exports){
+},{"./../dataManager.js":10}],14:[function(require,module,exports){
 //to change load size in main json file
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 module.exports = {
     assetLoader: require('./assetLoader'),
     fileLoader : require('./fileLoader'),
@@ -444,16 +577,16 @@ module.exports = {
     jsonProcessor : require('./jsonProcessor')
 };
 
-},{"./assetLoader":11,"./fileLoader":12,"./fileWriter":13,"./jsonProcessor":15}],15:[function(require,module,exports){
+},{"./assetLoader":12,"./fileLoader":13,"./fileWriter":14,"./jsonProcessor":16}],16:[function(require,module,exports){
 var jsonProcessor = exports;
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = {
     objectTypes: require('./objectTypes/'),
     objectManager: require('./objectManager')
 };
 
-},{"./objectManager":17,"./objectTypes/":23}],17:[function(require,module,exports){
+},{"./objectManager":18,"./objectTypes/":24}],18:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -465,6 +598,7 @@ var dynamicTypes = objectTypes.dynamicTypes;
 var gameObject = objectTypes.gameObject;
 var container = objectTypes.container;
 var button = objectTypes.button;
+var textObject = objectTypes.textObject;
 
 var assetManager =  require('./../loader/assetManager.js');
 var manipulator = require('./../common/manipulations');
@@ -596,6 +730,7 @@ objectManager.setCommonFunctions = function(o){
 
   o.setObjectProperty = function(args){
     var objToSet = objectManager.getObjectByName(args.target);
+    console.log("setting object property " + objToSet.displayObject.name);
     objToSet.displayObject.setProperty(args.props);
   }
 
@@ -677,7 +812,7 @@ objectManager.createObject = function(args){
     case "button":
       return  new button().createObject(args);
     case "textObject":
-      return "";
+      return new textObject().createObject(args);
     case "dynamicObject":
       return dynamicTypes.searchDynamicTypeByName(args.dynTypeName).createObject(args);
     default:
@@ -708,10 +843,59 @@ objectManager.broadcastMessage = function(o, args){
 
 }
 
-},{"./../../":28,"./../common/manipulations":6,"./../loader/assetManager.js":8,"./objectTypes":23,"pixi.js":3}],18:[function(require,module,exports){
+},{"./../../":29,"./../common/manipulations":7,"./../loader/assetManager.js":9,"./objectTypes":24,"pixi.js":5}],19:[function(require,module,exports){
 "use strict";
 
-},{}],19:[function(require,module,exports){
+var animation = exports;
+var assetManager = require('./../../loader/assetManager.js');
+//var slot = require('./../slot/slot.js');
+
+module.exports = function(){
+
+  this.createObject = function(args){
+
+    this.name = args.name;
+
+    //set animation asset batch
+    var animArr = slot.gameManager.assetManager.animAssets;
+
+    var textureArray = [];
+
+    for (var k=1; k < args.animLength+1; k++)
+    {
+        if(k < 10) n = args.assetName + '0';
+        else n = args.assetName;
+
+        n = n + k;
+        textureArray.push(gameManager.assetManager.animArr.resources[n].texture);
+    };
+
+    var mc = new PIXI.MovieClip(textureArray);
+
+    this.playAnimation = function(animName){
+
+        mc.play();
+
+        return mc;
+    }
+
+    this.stopAnimation = function(){
+        mc.stop();
+    }
+
+    this.gotoAndPlay = function(ind){
+        mc.gotoAndPlay(ind);
+    }
+
+    this.displayObject = mc;
+  }
+
+
+
+  return this;
+}
+
+},{"./../../loader/assetManager.js":9}],20:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -761,6 +945,14 @@ module.exports = function(){
 
     objectManager.registerObject(this);
 
+    o.setTexture = function(texture){
+      let a = texture.split(".");
+
+      let b = assetManager.findBatchByName(a[0]);
+
+      o.texture = b.loader.resources[a[1]].texture;
+    }
+
     o.mousedown = function(){
       if(args.actions != null && args.actions.mouseDown != null)
         o.processState(args.actions.mouseDown);
@@ -776,11 +968,11 @@ module.exports = function(){
         if(o.toggleButton){
           if(!o.clicked){
             if(o.overImage != null)
-              setTexture(o.overImage);
+              o.setTexture(o.overImage);
           }
         }else {
           if(o.overImage != null)
-            setTexture(o.overImage);
+            o.setTexture(o.overImage);
         }
       }
       if(args.actions != null && args.actions.mouseOver != null)
@@ -788,23 +980,15 @@ module.exports = function(){
     }
 
     o.mouseout = function(){
-      if(o.active){
-        if(o.toggleButton){
-          if(!o.clicked){
-            setTexture(o.defaultImage);
-          }
-        }
-        else
-          setTexture(o.defaultImage);
-      }
-
+      if(o.active && !o.clicked)
+          o.setTexture(o.defaultImage);
       if(args.actions != null && args.actions.mouseOut != null)
         o.processState(args.actions.mouseOut)
     }
 
     o.click = function(){
       if(o.toggleButton)
-        toggle();
+        o.toggle();
       if(args.actions != null && args.actions.click != null)
         o.processState(args.actions.click)
     }
@@ -851,38 +1035,52 @@ module.exports = function(){
 */
 
     o.setActive = function(v){
+      if(o.active){
+        o.setTexture(o.passiveImage);
+      }
+      else{
+        if(o.activeImage != null)
+          o.setTexture(o.activeImage);
+        else
+          o.setTexture(o.defaultImage);
+      }
       o.active = v;
     }
 
-    function toggle(){
-      console.log("toggling");
+    o.toggleActive = function(){
+      if(o.active){
+        o.setTexture(o.passiveImage);
+        o.active = false;
+      }
+      else{
+        if(o.activeImage != null)
+          o.setTexture(o.activeImage);
+        else
+          o.setTexture(o.defaultImage);
+
+        o.active = true;
+      }
+    }
+
+    o.toggle = function(){
       if(o.toggleButton && o.active){
         if(!o.clicked){
           o.clicked = true;
           if(o.clickedImage!=null)
-            setTexture(o.clickedImage);
+            o.setTexture(o.clickedImage);
         }else{
           o.clicked = false;
-          setTexture(o.defaultImage);
+          o.setTexture(o.defaultImage);
         }
       }
     }
-
-    function setTexture(texture){
-      let a = texture.split(".");
-
-      let b = assetManager.findBatchByName(a[0]);
-
-      o.texture = b.loader.resources[a[1]].texture;
-    }
-
     return o;
   }
 
   return this;
 }
 
-},{"./../../loader/assetManager.js":8,"./../objectManager.js":17,"pixi.js":3}],20:[function(require,module,exports){
+},{"./../../loader/assetManager.js":9,"./../objectManager.js":18,"pixi.js":5}],21:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -891,6 +1089,7 @@ var pixi = require('pixi.js');
 module.exports = function(){
 
   this.createObject = function(args){
+    this.name = args.name;
     var o = new pixi.Container(true);
     o = objectManager.setCommonProperties(o, args);
 
@@ -903,7 +1102,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../objectManager.js":17,"pixi.js":3}],21:[function(require,module,exports){
+},{"./../objectManager.js":18,"pixi.js":5}],22:[function(require,module,exports){
 "use strict";
 var manipulator = require('./../../common/manipulations.js');
 var dynamicTypes = exports;
@@ -918,7 +1117,7 @@ dynamicTypes.searchDynamicTypeByName = function(name){
   return manipulator.searchArrayElemByPropName("dynTypeName", name, dynamicTypes.types);
 }
 
-},{"./../../common/manipulations.js":6}],22:[function(require,module,exports){
+},{"./../../common/manipulations.js":7}],23:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -954,7 +1153,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../../loader/assetManager.js":8,"./../objectManager.js":17,"pixi.js":3}],23:[function(require,module,exports){
+},{"./../../loader/assetManager.js":9,"./../objectManager.js":18,"pixi.js":5}],24:[function(require,module,exports){
 module.exports = {
     animation: require('./animation'),
     button : require('./button'),
@@ -964,15 +1163,150 @@ module.exports = {
     textObject : require('./textObject')
 };
 
-},{"./animation":18,"./button":19,"./container":20,"./dynamicTypes":21,"./gameObject":22,"./textObject":24}],24:[function(require,module,exports){
-arguments[4][18][0].apply(exports,arguments)
-},{"dup":18}],25:[function(require,module,exports){
+},{"./animation":19,"./button":20,"./container":21,"./dynamicTypes":22,"./gameObject":23,"./textObject":25}],25:[function(require,module,exports){
+"use strict";
+
+var objectManager = require('./../objectManager.js');
+
+var pixi = require('pixi.js');
+module.exports = function(){
+
+  this.createObject = function(args){
+    this.name = args.name;
+    var fFamily;
+    args.props.fontFamily == null ? fFamily = 'Arial' : fFamily = args.props.fontFamily;
+    var fSize;
+    args.props.fontSize == null ? fSize = 20 : fSize = args.props.fontSize;
+    var fFill;
+    args.props.fill == null ? fFill = 0xffffff : fFill = args.props.fill;
+    var fAlign;
+    args.props.align == null ? fAlign = 'left' : fAlign = args.props.align;
+    var text = new PIXI.Text(args.content,{fontFamily : fFamily, fontSize: fSize, fill : fFill, align : fAlign});
+    text.name = args.name;
+
+    args.x == null ? text.position.x = 0 : text.position.x = args.x;
+    args.y == null ? text.position.y = 0 : text.position.y = args.y;
+    args.visible == null ? text.visible = true : text.visible = args.visible;
+
+    text.setProperty = function(args){
+      args.foreach(e => {
+        text[e.property] = e.value;
+      })
+    }
+
+    text.executeFunction = function(name, args){
+      text[name](args);
+    }
+
+    text.background = function(assetID){
+      /*var assetNameArr = assetID.split(".");
+      var batch = assetManager.findBatchByName(assetNameArr[0]);
+
+      text.texture = batch.loader.resources[assetNameArr[1]].texture;*/
+    }
+
+    text.content = function(txt){
+      text.setText(txt);
+    }
+
+    text.setProperty = function(args){
+      //processes every key in the properties list and applies them to the object
+      Object.keys(args).forEach(key => {
+        //property set also can be defined as function such as "background"
+        //where displayObject texture has to be changed and applied
+        if(text[key].constructor === Function)
+          text.executeFunction(key, args[key]);
+        else
+          //or it's a property to set.
+          text[key] = args[key];
+      });
+    }
+
+    text.setObjectProperty = function(args){
+      var objToSet = objectManager.getObjectByName(args.target);
+      objToSet.displayObject.setProperty(args.props);
+    }
+
+    text.processState = function(args){
+      if(args.constructor !== Array){
+        Object.keys(args).forEach(key => {
+          if(key != "state" && text[key].constructor === Function){
+            text.executeFunction(key, args[key]);
+          }else if(key == "state")
+            text.setState(args[key]);
+          else
+            text[key] = args[key];
+        });
+      }
+      else{
+        args.forEach(elm => {
+          Object.keys(elm).forEach(key => {
+            if(key != "state" && text[key].constructor === Function){
+              text.executeFunction(key, elm[key]);
+            }else if(key == "state")
+              text.setState(elm[key]);
+            else
+              text[key] = elm[key];
+          });
+        })
+      }
+    }
+
+    text.setState = function(stateName){
+      var args = text.states[stateName];
+      text.processState(args);
+    }
+
+    text.executeDynamicCode = function(funcData){
+
+      //determine if code in json file is written multi-line or single-line
+      var codePart;
+      if(funcData.code.constructor === Array){
+        codePart = funcData.code.join(" ");
+      }else {
+        codePart = funcData.code;
+      }
+
+      var f = Function(codePart);
+      f();
+    }
+
+    text.registerDynamicFunction = function(funcData){
+      //determine if code in json file is written multi-line or single-line
+      var codePart;
+      if(funcData.code.constructor === Array){
+        codePart = funcData.code.join(" ");
+      }else {
+        codePart = funcData.code;
+      }
+
+      let f = Function(...funcData.args, codePart);
+
+      gameManager[funcData.functionName] = f;
+    }
+
+    text.executeDynamicFunction = function(funcData){
+      let f = gameManager[funcData.functionName];
+      f(...funcData.args);
+    }
+
+    this.displayObject = text;
+
+    objectManager.registerObject(this);
+
+    return text;
+  }
+
+  return this;
+}
+
+},{"./../objectManager.js":18,"pixi.js":5}],26:[function(require,module,exports){
 module.exports = {
     sceneManager:     require('./sceneManager'),
     scene: require('./scene')
 };
 
-},{"./scene":26,"./sceneManager":27}],26:[function(require,module,exports){
+},{"./scene":27,"./sceneManager":28}],27:[function(require,module,exports){
 /******************************************************************************
 Scene is simply a pixi container. There can be multiple scenes in a game so
 there can be multiple instances of scene class. All scnes are manipulated by
@@ -1040,7 +1374,7 @@ module.exports = function(data){
 }
 /*end-member functions*********************************************************/
 
-},{"./../loader/dataManager.js":9,"./../objectManagement/objectManager.js":17,"pixi.js":3}],27:[function(require,module,exports){
+},{"./../loader/dataManager.js":10,"./../objectManagement/objectManager.js":18,"pixi.js":5}],28:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -1080,7 +1414,7 @@ sceneManager.closeCurrentScene = function(){
   sceneManager.currentScene.hide();
 }
 
-},{"./../common/manipulations.js":6,"./../loader/dataManager.js":9,"./scene.js":26,"pixi.js":3}],28:[function(require,module,exports){
+},{"./../common/manipulations.js":7,"./../loader/dataManager.js":10,"./scene.js":27,"pixi.js":5}],29:[function(require,module,exports){
 var core = module.exports = require('./engine/');
 
-},{"./engine/":7}]},{},[4]);
+},{"./engine/":8}]},{},[1]);

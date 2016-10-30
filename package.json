@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "watchify src/app.js -o src/bundle.js |beefy index.html",
+    "watch": "watchify app.js -o bundle.js |beefy index.html",
     "start": "./node_modules/ beefy index.html"
   },
   "author": "alican köker",
