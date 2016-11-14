@@ -1,6 +1,23 @@
 {
   "settings":{
     "assetsPath": "/games/test/assets",
-    "dataPath": "/games/test/data"
+    "dataPath": "/games/test/data",
+    "numberOfReels": 5,
+    "totalLength": 20,
+    "numberOfSymbolsOnReel": 3,
+    "reelGap": 10,
+    "slotXPos": 260,
+    "slotYPos": 124,
+    "reelItemSize": 100,
+    "totalNumberOfSymbols": 9,
+    "totalSpinIterations": 4,
+    "spinSpeed": 12,
+    "spinMaxSpeed": 40
+  },
+  "symbolProps":{
+      "symbolWidth": 144,
+      "symbolHeight": 144,
+      "x": 0,
+      "y": 0
   }
 }

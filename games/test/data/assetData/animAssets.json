@@ -1,0 +1,14 @@
+{
+  "type": "animation",
+  "name": "animAssets",
+  "scene": "slotScene",
+  "assets":{
+    "symbolAnim":{
+      "path": "games/test/assets/animations/symbolAnim/",
+      "assetPref":"win_effect_",
+      "fileType": "png",
+      "startIndex": 87,
+      "assetCount": 50
+    }
+  }
+}

@@ -19,6 +19,7 @@ var objectManager = exports;
 objectManager.objectBatch = [];
 
 objectManager.setCommonProperties = function(o, args){
+  //console.log("o: " + o + " args.name: " + args.name);
 
   args.name != null ? o.name = args.name : o.name = "";
   args.x != null ? o.position.x = args.x : o.position.x = 0;
@@ -120,10 +121,7 @@ objectManager.setCommonFunctions = function(o){
   }
 
   o.background = function(assetID){
-    var assetNameArr = assetID.split(".");
-    var batch = assetManager.findBatchByName(assetNameArr[0]);
-
-    o.texture = batch.loader.resources[assetNameArr[1]].texture;
+    o.texture = assetManager.loader.resources[assetID].texture;
   }
 
   o.setProperty = function(args){
@@ -141,7 +139,7 @@ objectManager.setCommonFunctions = function(o){
 
   o.setObjectProperty = function(args){
     var objToSet = objectManager.getObjectByName(args.target);
-    console.log("setting object property " + objToSet.displayObject.name);
+    //console.log("setting object property " + objToSet.displayObject.name);
     objToSet.displayObject.setProperty(args.props);
   }
 
@@ -215,16 +213,22 @@ objectManager.processProperty = function(o){
 }
 
 objectManager.createObject = function(args){
+  //console.log("inisde createobject in object manager")
   switch (args.type) {
     case "object":
+      //console.log("game object");
       return new gameObject().createObject(args);
     case "container":
+      //console.log("container object");
       return new container().createObject(args);
     case "button":
+      //console.log("button object");
       return  new button().createObject(args);
     case "textObject":
+      //console.log("text object");
       return new textObject().createObject(args);
     case "dynamicObject":
+      //console.log("dynamic object");
       return dynamicTypes.searchDynamicTypeByName(args.dynTypeName).createObject(args);
     default:
       return new gameObject().createObject(args);

@@ -1,5 +1,5 @@
 {
-  "type": "sprite",
+  "type": "image",
   "scene": "slotScene",
   "name": "symbolTextures",
   "pathPrefix": "/games/test/assets/symbols/symbolTextures/",

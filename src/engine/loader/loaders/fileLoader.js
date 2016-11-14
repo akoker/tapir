@@ -5,10 +5,9 @@ var dataManager = require('./../dataManager.js');
 
 //loads text file from server, casts its MIME type
 //when load is finished, executes callback function
-fileLoader.loadFile = function (path, callback, callbackVar = null, type = "json") {
-
+fileLoader.loadFile = function (path, callback, callbackVar = null, dataType = null, fileType = "json") {
     var fileObject = new XMLHttpRequest();
-    switch (type) {
+    switch (fileType) {
       case "json":
         fileObject.overrideMimeType("application/json");
         break;
@@ -24,8 +23,12 @@ fileLoader.loadFile = function (path, callback, callbackVar = null, type = "json
 
     fileObject.onreadystatechange = function() {
         if (fileObject.readyState == 4 && fileObject.status == "200") {
-          if(callbackVar != null)
-            callback(fileObject.responseText, callbackVar);
+          if(callbackVar != null){
+            if(dataType != null)
+              callback(fileObject.responseText, callbackVar, dataType);
+            else
+              callback(fileObject.responseText, callbackVar);
+          }
           else
             callback(fileObject.responseText)
         }

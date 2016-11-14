@@ -22,7 +22,7 @@ module.exports = function(data){
   }
 
   this.createScene = function(data){
-    console.log("scene '" + this.name + "' is getting created");
+    //console.log("scene '" + this.name + "' is getting created");
     let d = this.traverse(data.scene);
 
     d.forEach(v => {
@@ -47,8 +47,8 @@ module.exports = function(data){
   this.traverse = function(p){
       var objArr = new Array();
       for(let i = 0; i < p.length; i++){
+          //console.log("creating object: " + p[i].name + " objectManager: " + objectManager);
           let v = objectManager.createObject(p[i]);
-          console.log("creating object: " + p[i].name);
           if(v!=null){
               objArr.push(v);
               if(p[i].children!=undefined){

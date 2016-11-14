@@ -4,7 +4,6 @@
   "description": "game engine",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "watchify app.js -o bundle.js |beefy index.html",
     "start": "./node_modules/ beefy index.html"
   },
@@ -12,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "browserify": "^13.1.0",
+    "pixi-timer": "^1.0.1",
     "pixi.js": "^4.0.3"
   },
   "devDependencies": {

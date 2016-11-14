@@ -2,49 +2,41 @@
 
 var animation = exports;
 var assetManager = require('./../../loader/assetManager.js');
+var dataManager = require('./../../loader/dataManager.js');
 //var slot = require('./../slot/slot.js');
 
 module.exports = function(){
-
+  var mc;
   this.createObject = function(args){
 
-    this.name = args.name;
+    var data = dataManager.getAnimDataByName(args);
+    console.log(data);
+    this.name = args;
 
-    //set animation asset batch
-    var animArr = slot.gameManager.assetManager.animAssets;
-
+    var resources = gameManager.assetManager.loader.resources;
+    //console.log(resources);
     var textureArray = [];
-
-    for (var k=1; k < args.animLength+1; k++)
+    for (let i=0; i < data.assetCount; i++)
     {
-        if(k < 10) n = args.assetName + '0';
-        else n = args.assetName;
-
-        n = n + k;
-        textureArray.push(gameManager.assetManager.animArr.resources[n].texture);
+        textureArray.push(resources[data.assetPref + i].texture);
     };
 
-    var mc = new PIXI.MovieClip(textureArray);
+    mc = new PIXI.MovieClip(textureArray);
 
-    this.playAnimation = function(animName){
-
-        mc.play();
-
-        return mc;
-    }
-
-    this.stopAnimation = function(){
-        mc.stop();
-    }
-
-    this.gotoAndPlay = function(ind){
-        mc.gotoAndPlay(ind);
-    }
-
-    this.displayObject = mc;
+    this. displayObject = mc;
+    return mc;
   }
 
+  this.playAnimation = function(animName){
+      mc.play();
+  }
 
+  this.stopAnimation = function(){
+      mc.stop();
+  }
 
+  this.gotoAndPlay = function(ind){
+      mc.gotoAndPlay(ind);
+  }
   return this;
 }

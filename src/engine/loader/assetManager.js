@@ -1,71 +1,96 @@
 "use strict";
 
+
 var assetManager = exports;
 
+var pixi = require('pixi.js');
+
 var assetLoader = require('./loaders/assetLoader.js');
+var animAssetLoader = require('./loaders/animAssetLoader.js');
 var fileLoader = require('./loaders/fileLoader.js');
 var manipulator = require('./../common/manipulations.js');
-var callbackFunc;
-var callbackFuncArgs;
-var loadCount = 0;
-var toLoad;
+var callbackFunc = null;
+var callbackFuncArgs = null;
 
-//array of objects of asset batches
-assetManager.assets = [];
-assetManager.anims = [];
-assetManager.sounds = [];
-//assetManager.defaultBatches = ["ui", "symbols", "symbolAnims", "slotAnims",
-//                              "bonus", "bonusAnims", "gamble", "gambleAnims"]
+//contains all of the visual assets
+assetManager.loader = pixi.loader;
+assetManager.animations = [];
 
-assetManager.registerAllAssets = function(assetData, callback, callbackArgs = null){
-  console.log("registering all assets");
-  callbackFunc = callback;
-  callbackFuncArgs = callbackArgs;
-  toLoad = assetData.length;
-  loadCount = 0;
+assetManager.loadImageBatch = function(args, callback){
+  var ctr = 0;
+  var toLoad = args.assets.length;
+  args.assets.forEach(elm=>{
+    //console.log("name: " + elm.name + " path: " + (args.pathPrefix + elm.path));
+    loadFile(elm.name, args.pathPrefix + elm.path);
+  })
 
-  assetData.forEach(v => {
-    createPileAssetBatch(v)
-  });
+  function loadFile(name, path){
+    assetManager.loader.add(name, path);
+    assetManager.loader.once('complete', loadCallback);
+    assetManager.loader.load();
+  }
 
-}
-
-function createPileAssetBatch(data){
-  var loader = new assetLoader(data);
-  loader.name = data.name;
-  loader.type = data.type;
-  loader.scene = data.scene;
-  loader.Load(createPileAssetBatchCallback);
-}
-
-function createPileAssetBatchCallback(o){
-  assetManager.registerAssetBatch(o);
-  loadCount++;
-  if(loadCount == toLoad){
-    if(callbackFuncArgs==null)
-      callbackFunc();
-    else
-      callbackFunc(callbackFuncArgs);
+  function loadCallback(){
+    ctr++;
+    if(ctr == toLoad)
+      callback();
   }
 }
 
-assetManager.createSingleAssetBatch = function(data, callback , callbackArgs = null){
-  callbackFunc = callback;
-  callbackFuncArgs = callbackArgs;
-  var loader = new assetLoader(data);
-  loader.Load(createAssetBatchCallback);
+assetManager.loadAnimBatch = function(args, callback){
+  var ctr = 0;
+  var toLoad = 0;
+  var assetArr = args.assets;
+  var animDataKeys = Object.keys(assetArr);
+  animDataKeys.forEach(key=>{
+    var elem = assetArr[key];
+    toLoad = elem.assetCount * animDataKeys.length;
+    var sInd;
+    elem.startIndex != null ? sInd = elem.startIndex : sInd = 0;
+    for(var i = sInd; i < sInd + elem.assetCount; i++){
+      if(i < 10)
+        var ind = "0" + i.toString();
+      else {
+        var ind = i;
+      }
+      var name = elem.assetPref + (i - sInd);
+      assetManager.loader.add(name, elem.path + elem.assetPref + ind + "." + elem.fileType);
+      assetManager.loader.once('complete', loadCallback);
+      assetManager.loader.load();
+    }
+  });
+  function loadCallback(){
+    ctr++;
+    if(ctr == toLoad){
+      callback();
+    }
+  }
 }
 
-function createSingleAssetBatchCallback(o){
-  assetManager.registerAssetBatch(o);
-  if(callbackFuncArgs==null)
-    callbackFunc();
-  else
-    callbackFunc(callbackFuncArgs);
+function createAnimAssetBatchCallback(o){
+    assetManager.registerAnimAssetBatch(o);
 }
 
-assetManager.registerAssetBatch = function(o){
+assetManager.registerAssetBatch = function(o, type = null){
+  switch (type) {
+    case "image":
+      assetManager.assets.push(o);
+      break;
+    case "animation":
+      assetManager.animAssets.push(o);
+      break;
+    case "sound":
+      assetManager.soundAssets.push(o);
+      break;
+    default:
+      assetManager.assets.push(o);
+      break;
+  }
   assetManager.assets.push(o);
+}
+
+assetManager.registerAnimAssetBatch = function(o){
+  assetManager.animAssets.push(o);
 }
 
 assetManager.findBatchByName = function(name){

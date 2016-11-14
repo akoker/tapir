@@ -9,11 +9,13 @@ module.exports = function(){
   this.createObject = function(args){
     this.name = args.name;
     //find corresponding loader
-    var assetNameArr = args.background.split(".");
 
-    var batch = assetManager.findBatchByName(assetNameArr[0]);
+    //var batch = assetManager.findBatchByName(assetNameArr[0]);
 
-    var o = new pixi.Sprite(batch.loader.resources[assetNameArr[1]].texture);
+    var texture = assetManager.loader.resources[args.background].texture;
+    //console.log("creating " + args.name + "bg: " + assetNameArr[1] + " texture: " + texture);
+
+    var o = new pixi.Sprite(texture);
 
     o = objectManager.setCommonProperties(o, args);
 

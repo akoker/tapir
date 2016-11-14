@@ -10,11 +10,8 @@ module.exports = function(){
   this.createObject = function(args){
     this.name = args.name;
     //find corresponding loader
-    var assetNameArr = args.background.split(".");
 
-    var batch = assetManager.findBatchByName(assetNameArr[0]);
-
-    var o = new pixi.Sprite(batch.loader.resources[assetNameArr[1]].texture);
+    var o = new pixi.Sprite(gameManager.assetManager.loader.resources[args.background].texture);
 
     o = objectManager.setCommonProperties(o, args);
 

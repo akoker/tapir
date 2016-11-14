@@ -1,6 +1,6 @@
-var PIXI = require('pixi.js');
+var pixi = require('pixi.js');
 var reelLines = exports;
-var gameManager = require('./../../gameManager.js');
+var gameManager = require('./../../../gameManager.js');
 
 //list of winning lines
 var p = [
@@ -27,7 +27,7 @@ pArgs.numberOfLines = 9;
 
 //draw only possible line
 reelLines.drawLine = function (index){
-    var g = new PIXI.Graphics();
+    var g = new pixi.Graphics();
     g.lineStyle(4, 0xffd900, 1);
     var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
     var name = "btnLine" + (index);
@@ -46,13 +46,12 @@ reelLines.drawLine = function (index){
 //draws winning line with squares
 reelLines.drawWinningLine = function (index, count){
     console.log("drawing winning line: " + index);
-    var g = new PIXI.Graphics();
+    var g = new pixi.Graphics();
     g.lineStyle(4, 0xaad900, 1);
 
-    var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer");
-    var name = "btnLine" + (index);
-    var sP = gameManager.objectManager.getObjectByName(name);
-    console.log("sp.y = " + sP.y);
+    var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
+    var name = "btnLine" + (index + 1);
+    var sP = gameManager.objectManager.getObjectByName(name).displayObject;
     g.moveTo(btnCont.position.x + sP.position.x + 50, btnCont.position.y + sP.position.y + 25);
     g.lineTo(pArgs.leftPos, pArgs.topMargin + pArgs.symbolHeight*p[index][0] + pArgs.symbolHeight/2);
     for(var i = 0; i < count-1; i++){
@@ -75,10 +74,31 @@ reelLines.drawWinningLine = function (index, count){
 
 reelLines.animateWinningLines = function(winArr){
     console.log("winning lines are being animated " + winArr);
-    var f = winArr[0][0]-1;
-    var g = winArr[0][1];
-    console.log("f: " + f + " g: " + g);
-    return reelLines.drawWinningLine(f,g);
+    //var f = winArr[0][0]-1;
+    //var g = winArr[0][1];
+    //for(var i = 0; i < winArr.length; i++)
+    var cnt = 0;
+    var timerArr = [];
+    winArr.forEach(res => {
+      var f = res[0]-1;
+      var g = res[1];
+      console.log("f: " + f + " g: " + g);
+      var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
+      var l = reelLines.drawWinningLine(f,g);
+      console.log("cnt: " + cnt)
+      var t = pixi.timerManager.createTimer(1500 * cnt + 0.1);
+      t.start();
+      t.on('end', function(del){
+        lnCont.displayObject.removeChildren();
+        lnCont.displayObject.addChild(l);
+        console.log("working!");
+      });
+      console.log("l: " + l);
+        cnt++;
+      //lnCont.displayObject.addChild(t);
+
+      //return t;//reelLines.drawWinningLine(f,g);
+    });
 }
 
 //randomizes reel line data so that you can see it works on all conditions

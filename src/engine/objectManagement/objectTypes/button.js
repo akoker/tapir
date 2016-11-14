@@ -10,16 +10,16 @@ module.exports = function(){
     this.name = args.name;
 
     //*********************create sprite**********************
-    var assetNameArr;
+    var bgAsset;
     if(args.images != null && args.images.default != null){
-      assetNameArr = args.images.default.split(".");
+      bgAsset = args.images.default;
     }
     else {
-      assetNameArr = args.background.split(".");
+      bgAsset = args.background;
     }
-    var batch = assetManager.findBatchByName(assetNameArr[0]);
+    //var batch = assetManager.findBatchByName(assetNameArr[0]);
 
-    var o = new pixi.Sprite(batch.loader.resources[assetNameArr[1]].texture);
+    var o = new pixi.Sprite(assetManager.loader.resources[bgAsset].texture);
     //********************end create-sprite*******************
 
     o = objectManager.setCommonProperties(o, args);
@@ -47,12 +47,8 @@ module.exports = function(){
 
     objectManager.registerObject(this);
 
-    o.setTexture = function(texture){
-      let a = texture.split(".");
-
-      let b = assetManager.findBatchByName(a[0]);
-
-      o.texture = b.loader.resources[a[1]].texture;
+    o.setTexture = function(textureName){
+      o.texture = assetManager.loader.resources[textureName].texture;
     }
 
     o.mousedown = function(){

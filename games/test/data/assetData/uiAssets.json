@@ -1,5 +1,5 @@
 {
-  "type": "sprite",
+  "type": "image",
   "name": "uiAssets",
   "scene": "slotScene",
   "pathPrefix": "/games/test/assets/uiAssets/",

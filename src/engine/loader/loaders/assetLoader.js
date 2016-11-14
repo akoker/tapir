@@ -11,6 +11,7 @@ module.exports = function(args){
     var loadObject = new Object();
 
     this.Load = function(callback){
+      console.log("loading asset: ");
         callbackFunc = callback;
         args.assets.forEach(v =>{
             loader.add(v.name, args.pathPrefix + v.path);
