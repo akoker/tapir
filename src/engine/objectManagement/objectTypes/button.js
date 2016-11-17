@@ -57,11 +57,13 @@ module.exports = function(){
     }
 
     o.mouseup = function(){
-      if(args.actions != null && args.actions.mouseUp != null)
-        o.processState(args.actions.mouseUp)
+      if(args.actions != null && args.actions.mouseUp != null){
+        o.processState(args.actions.mouseUp)}
     }
 
     o.mouseover = function(){
+      if(args.actions != null && args.actions.mouseOver != null)
+        o.processState(args.actions.mouseOver)
       if(o.active){
         if(o.toggleButton){
           if(!o.clicked){
@@ -73,22 +75,20 @@ module.exports = function(){
             o.setTexture(o.overImage);
         }
       }
-      if(args.actions != null && args.actions.mouseOver != null)
-        o.processState(args.actions.mouseOver)
     }
 
     o.mouseout = function(){
-      if(o.active && !o.clicked)
-          o.setTexture(o.defaultImage);
       if(args.actions != null && args.actions.mouseOut != null)
         o.processState(args.actions.mouseOut)
+      if(o.active && !o.clicked)
+          o.setTexture(o.defaultImage);
     }
 
     o.click = function(){
-      if(o.toggleButton)
-        o.toggle();
       if(args.actions != null && args.actions.click != null)
         o.processState(args.actions.click)
+      if(o.toggleButton)
+        o.toggle();
     }
     /*
       if(args.actions.touchStart != null){

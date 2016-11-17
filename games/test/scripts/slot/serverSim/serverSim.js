@@ -45,9 +45,9 @@ server.randomizeReels = function (rSize){
     return server.reels;
 }
 
-server.checkWin = function(){
+server.checkWin = function(activeLines){
     var winLines = [];
-    for(var i = 0; i < server.p.length; i++){
+    for(var i = 0; i < activeLines; i++){
         var ctr = 1;
         var first = server.reels[0][(server.spinData[0] + server.p[i][0])];
         for(var j = 1; j<server.noOfReels; j++){

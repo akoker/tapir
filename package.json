@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "watch": "watchify app.js -o bundle.js |beefy index.html",
+    "show": "browserify app.js -o bundle.js",
     "start": "./node_modules/ beefy index.html"
   },
   "author": "alican köker",

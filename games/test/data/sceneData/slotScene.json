@@ -6,10 +6,7 @@
         "name": "mainBG",
         "background": "mainBackground",
         "x": 0,
-        "y": 0,
-        "states":{
-
-        }
+        "y": 0
       },
       {
         "type": "object",
@@ -39,9 +36,8 @@
         },
         "children": [
           {
-            "type": "dynamicObject",
+            "type": "object",
             "name": "cliffhanger",
-            "dynTypeName": "spriteType",
             "background": "cliffhanger",
             "x": 1050,
             "y": 200
@@ -65,11 +61,12 @@
                 "type": "textObject",
                 "name": "spinText",
                 "content": "SPIN",
-                "x": 68,
-                "y": 90,
+                "x": 60,
+                "y": 83,
                 "props":{
-                    "fontSize": 25,
-                    "fill": "0x234567"
+                    "fontSize": 35,
+                    "fill": "0x234567",
+                    "align": "center"
                 }
             }
         ],

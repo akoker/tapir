@@ -10,7 +10,7 @@ module.exports = function(){
   this.dynTypeName = "slotType";
 
   this.createObject = function(args){
-    
+
     this.name = args.name;
     //find corresponding loader
 

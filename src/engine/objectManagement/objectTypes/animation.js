@@ -10,7 +10,6 @@ module.exports = function(){
   this.createObject = function(args){
 
     var data = dataManager.getAnimDataByName(args);
-    console.log(data);
     this.name = args;
 
     var resources = gameManager.assetManager.loader.resources;

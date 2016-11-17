@@ -140,7 +140,10 @@ objectManager.setCommonFunctions = function(o){
   o.setObjectProperty = function(args){
     var objToSet = objectManager.getObjectByName(args.target);
     //console.log("setting object property " + objToSet.displayObject.name);
-    objToSet.displayObject.setProperty(args.props);
+    if(objToSet != "this")
+      objToSet.displayObject.setProperty(args.props);
+    else
+      o.displayObject.setProperty(args.props);
   }
 
   o.processState = function(args){

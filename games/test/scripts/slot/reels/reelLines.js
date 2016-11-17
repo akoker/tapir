@@ -25,80 +25,96 @@ pArgs.reelMargin = 10;
 pArgs.numberOfReels = 5;
 pArgs.numberOfLines = 9;
 
+reelLines.winLineDisplayDuration = 2500;
+reelLines.rLTimers = [];
+
 //draw only possible line
 reelLines.drawLine = function (index){
-    var g = new pixi.Graphics();
-    g.lineStyle(4, 0xffd900, 1);
-    var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
-    var name = "btnLine" + (index);
-    var sP = gameManager.objectManager.getObjectByName(name).displayObject;
-    g.moveTo(btnCont.x + sP.position.x + 50, btnCont.y + sP.position.y + 25);
-    for(var i = 0; i < pArgs.numberOfReels; i++){
-        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
-        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
-    }
+  reelLines.stopWinningLineAnimations();
+  var g = new pixi.Graphics();
+  g.lineStyle(4, 0xffd900 * index + (index * 4000), 1);
+  var name = "btnLine" + (index);
+  var sP = gameManager.objectManager.getObjectByName(name).displayObject;
+  g.moveTo(gameManager.lineBtnCont.x + sP.position.x + 50, gameManager.lineBtnCont.y + sP.position.y + 25);
+  for(var i = 0; i < pArgs.numberOfReels; i++){
+      g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
+      g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
+  }
 
-    g.endFill();
+  g.endFill();
 
-    return g;
+  return g;
 }
 
 //draws winning line with squares
 reelLines.drawWinningLine = function (index, count){
-    console.log("drawing winning line: " + index);
-    var g = new pixi.Graphics();
-    g.lineStyle(4, 0xaad900, 1);
+  var g = new pixi.Graphics();
+  g.lineStyle(4, 0xffd900 * index + (index * 4000), 1);
 
-    var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
-    var name = "btnLine" + (index + 1);
-    var sP = gameManager.objectManager.getObjectByName(name).displayObject;
-    g.moveTo(btnCont.position.x + sP.position.x + 50, btnCont.position.y + sP.position.y + 25);
-    g.lineTo(pArgs.leftPos, pArgs.topMargin + pArgs.symbolHeight*p[index][0] + pArgs.symbolHeight/2);
-    for(var i = 0; i < count-1; i++){
-        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
-        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth + pArgs.reelMargin, pArgs.topMargin + pArgs.symbolHeight*p[index][i+1] + pArgs.symbolHeight/2);
-    }
-    g.moveTo(pArgs.leftPos + pArgs.reelMargin*(count-1) + (count)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][count-1] + pArgs.symbolHeight/2);
-    for(i = count; i < 5; i++){
-        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
-        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
-    }
-    for(var i = 0; i < count; i++){
-        g.drawRect(pArgs.leftPos + i*pArgs.symbolWidth + i*pArgs.reelMargin, p[index][i]*pArgs.symbolHeight + pArgs.topMargin, pArgs.symbolWidth, pArgs.symbolHeight);
-    }
+  var name = "btnLine" + (index + 1);
+  var sP = gameManager.objectManager.getObjectByName(name).displayObject;
+  g.moveTo(gameManager.lineBtnCont.position.x + sP.position.x + 50, gameManager.lineBtnCont.position.y + sP.position.y + 25);
+  g.lineTo(pArgs.leftPos, pArgs.topMargin + pArgs.symbolHeight*p[index][0] + pArgs.symbolHeight/2);
+  for(var i = 0; i < count-1; i++){
+      g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+      g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth + pArgs.reelMargin, pArgs.topMargin + pArgs.symbolHeight*p[index][i+1] + pArgs.symbolHeight/2);
+  }
+  g.moveTo(pArgs.leftPos + pArgs.reelMargin*(count-1) + (count)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][count-1] + pArgs.symbolHeight/2);
+  for(i = count; i < 5; i++){
+      g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+      g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+  }
+  for(var i = 0; i < count; i++){
+      g.drawRect(pArgs.leftPos + i*pArgs.symbolWidth + i*pArgs.reelMargin, p[index][i]*pArgs.symbolHeight + pArgs.topMargin, pArgs.symbolWidth, pArgs.symbolHeight);
+  }
 
 
-    g.endFill();
-    return g;
+  g.endFill();
+  return g;
 }
 
 reelLines.animateWinningLines = function(winArr){
-    console.log("winning lines are being animated " + winArr);
-    //var f = winArr[0][0]-1;
-    //var g = winArr[0][1];
-    //for(var i = 0; i < winArr.length; i++)
     var cnt = 0;
     var timerArr = [];
+    reelLines.rLTimers = [];
+    var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
+    var animCont = gameManager.objectManager.getObjectByName("animationContainer");
     winArr.forEach(res => {
       var f = res[0]-1;
       var g = res[1];
-      console.log("f: " + f + " g: " + g);
-      var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
       var l = reelLines.drawWinningLine(f,g);
-      console.log("cnt: " + cnt)
-      var t = pixi.timerManager.createTimer(1500 * cnt + 0.1);
+      //console.log("cnt: " + cnt);
+      var t = pixi.timerManager.createTimer(reelLines.winLineDisplayDuration * cnt + 0.1);
+      reelLines.rLTimers.push(t);
       t.start();
+      var wArr = winArr;
       t.on('end', function(del){
         lnCont.displayObject.removeChildren();
         lnCont.displayObject.addChild(l);
-        console.log("working!");
+        animCont.displayObject.removeChildren();
+        cnt = (del - 0.1) / reelLines.winLineDisplayDuration;
+        gameManager.slot.playSymbolAnimationsByLine(winArr, p[winArr[cnt][0]-1], winArr[cnt][1]);
+        gameManager.slot.setActiveLineButton(res[0], false, false);
       });
-      console.log("l: " + l);
-        cnt++;
-      //lnCont.displayObject.addChild(t);
-
-      //return t;//reelLines.drawWinningLine(f,g);
+      cnt++;
     });
+
+    gameManager.slot.endTimer = pixi.timerManager.createTimer(reelLines.winLineDisplayDuration * winArr.length);
+    gameManager.slot.endTimer.start();
+    gameManager.slot.endTimer.on('end', function(){
+      lnCont.displayObject.removeChildren();
+      gameManager.slot.setActiveLineButton(gameManager.slot.activeLine);
+      animCont.displayObject.removeChildren();
+    });
+}
+
+reelLines.stopWinningLineAnimations = function(){
+  gameManager.slot.setActiveLineButton(gameManager.slot.activeLine, true, false);
+  reelLines.rLTimers.forEach(elem => {
+    elem.stop();
+  });
+  var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
+  lnCont.displayObject.removeChildren();
 }
 
 //randomizes reel line data so that you can see it works on all conditions

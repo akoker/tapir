@@ -30,29 +30,28 @@ gameManager.objectManager = tapir.objectManagement.objectManager;
 gameManager.sceneManager = tapir.sceneManagement.sceneManager;
 gameManager.dataManager = tapir.loader.dataManager;
 gameManager.assetManager = tapir.loader.assetManager;
+gameManager.server = require('./scripts/slot/serverSim/serverSim.js');
 gameManager.reelLines = require('./scripts/slot/reels/reelLines.js');
 gameManager.spinning = false;
+gameManager.activeSlotLine = 9;
 
-var animType = tapir.objectManagement.objectTypes.animation;
+gameManager.animType = tapir.objectManagement.objectTypes.animation;
 
 var scene = tapir.sceneManagement.scene;
 var dynamicTypes = tapir.objectManagement.objectTypes.dynamicTypes;
 
-//custom object type declaration example
-var spriteType = require('./scripts/types/spriteType.js');
+//custom object type declarations
 var slotType = require('./scripts/types/slotType.js');
 
 //path of the JSON file containing game data to initialize the game
 var gameDataPath = ('games/test/data/game.json');
 
 //setting up renderer and stage
-var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true});
+var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true, resolution: window.devicePixelRatio || 1});
 gameManager.stage = new pixi.Container();
 
 var gameDiv = document.getElementById('gameDiv');
 gameDiv.appendChild(renderer.view);
-
-var r;
 
 //add gameManager to the window so that the dynamic code can reach namespace
 window.gameManager = gameManager;
@@ -76,7 +75,6 @@ function loadGameData(){
 function loadAssets(){
   var count = 0;
   //registering a dynamic object type
-  dynamicTypes.registerDynamicObjectType(new spriteType());
   dynamicTypes.registerDynamicObjectType(new slotType());
 
   console.log("started loading assets ");
@@ -89,47 +87,21 @@ function loadAssets(){
 
   function assetsLoaded(to, loaded){
     count++;
+    //checks if all of the asset batches are loaded
     if(count == 3){
-      //create scene
-      var s = gameManager.dataManager.getSceneDataByName("slotScene");
       console.log("all assets are loaded! ");
-      var sc = new scene(s);
+
+      //create scene
+      var sc = new scene(gameManager.dataManager.getSceneDataByName("slotScene"));
+
+      //add scene to the stage
       gameManager.stage.addChild(sc.container);
 
-      gameManager.server = require('./scripts/slot/serverSim/serverSim.js');
+      //set initial number of lines to play
+      gameManager.slot.setActiveLineButton(gameManager.activeSlotLine);
 
-      //var reelData = gameManager.server.randomizeReels(100);
-
-      //var spinData = gameManager.server.randomizeSpin();
-
-      //console.log("initial spin data: " + spinData);
-
-      //console.log("slot object: " + gameManager.slot.reelArr[0].rendText);
-      /*var anim = new animType();
-      sc.container.addChild(anim.createObject("symbolAnim"));
-      anim.displayObject.x = 100;
-      anim.displayObject.y = 100;
-      anim.displayObject.visible = false;
-      anim.playAnimation();
-      anim.displayObject.visible = true;
-
-      var reel = require('./scripts/slot/reels/reel.js');
-      r = new reel(reelData, gameManager.dataManager.settingsData, gameManager.dataManager.assetData);
-      r.createReel(0, gameManager.assetManager.loader);
-      console.log(r.cont);
-      //sc.container.addChild(r.cont);
-      r.tile.position.x = 200;
-      sc.container.addChild(r.tile);*/
-
-      //sc.container.addChild(gameManager.slot.cont.displayObject);
-
-      /*for(var i = 0; i < 5; i++){
-        sc.container.addChild(gameManager.slot.reelArr[i].tile);
-        gameManager.slot.reelArr[i].tile.x = gameManager.slot.cont.displayObject.position.x + 154*i;
-        gameManager.slot.reelArr[i].tile.y = gameManager.slot.cont.displayObject.position.y;
-      }*/
-
-      //sc.container.addChild(gameManager.slot.cont);
+      //make line button container reachable through the root script
+      gameManager.lineBtnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
     }
   }
 
@@ -150,7 +122,7 @@ function update(){
   }
 }
 
-},{"./../../src/":35,"./scripts/slot/reels/reelLines.js":4,"./scripts/slot/serverSim/serverSim.js":5,"./scripts/types/slotType.js":7,"./scripts/types/spriteType.js":8,"pixi-timer":9,"pixi.js":10}],3:[function(require,module,exports){
+},{"./../../src/":34,"./scripts/slot/reels/reelLines.js":4,"./scripts/slot/serverSim/serverSim.js":5,"./scripts/types/slotType.js":7,"pixi-timer":8,"pixi.js":9}],3:[function(require,module,exports){
 var slot = require('./../slot.js');
 var gameManager = require('./../../../gameManager.js');
 
@@ -300,80 +272,96 @@ pArgs.reelMargin = 10;
 pArgs.numberOfReels = 5;
 pArgs.numberOfLines = 9;
 
+reelLines.winLineDisplayDuration = 2500;
+reelLines.rLTimers = [];
+
 //draw only possible line
 reelLines.drawLine = function (index){
-    var g = new pixi.Graphics();
-    g.lineStyle(4, 0xffd900, 1);
-    var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
-    var name = "btnLine" + (index);
-    var sP = gameManager.objectManager.getObjectByName(name).displayObject;
-    g.moveTo(btnCont.x + sP.position.x + 50, btnCont.y + sP.position.y + 25);
-    for(var i = 0; i < pArgs.numberOfReels; i++){
-        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
-        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
-    }
+  reelLines.stopWinningLineAnimations();
+  var g = new pixi.Graphics();
+  g.lineStyle(4, 0xffd900 * index + (index * 4000), 1);
+  var name = "btnLine" + (index);
+  var sP = gameManager.objectManager.getObjectByName(name).displayObject;
+  g.moveTo(gameManager.lineBtnCont.x + sP.position.x + 50, gameManager.lineBtnCont.y + sP.position.y + 25);
+  for(var i = 0; i < pArgs.numberOfReels; i++){
+      g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
+      g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index-1][i] + pArgs.symbolHeight/2);
+  }
 
-    g.endFill();
+  g.endFill();
 
-    return g;
+  return g;
 }
 
 //draws winning line with squares
 reelLines.drawWinningLine = function (index, count){
-    console.log("drawing winning line: " + index);
-    var g = new pixi.Graphics();
-    g.lineStyle(4, 0xaad900, 1);
+  var g = new pixi.Graphics();
+  g.lineStyle(4, 0xffd900 * index + (index * 4000), 1);
 
-    var btnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
-    var name = "btnLine" + (index + 1);
-    var sP = gameManager.objectManager.getObjectByName(name).displayObject;
-    g.moveTo(btnCont.position.x + sP.position.x + 50, btnCont.position.y + sP.position.y + 25);
-    g.lineTo(pArgs.leftPos, pArgs.topMargin + pArgs.symbolHeight*p[index][0] + pArgs.symbolHeight/2);
-    for(var i = 0; i < count-1; i++){
-        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
-        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth + pArgs.reelMargin, pArgs.topMargin + pArgs.symbolHeight*p[index][i+1] + pArgs.symbolHeight/2);
-    }
-    g.moveTo(pArgs.leftPos + pArgs.reelMargin*(count-1) + (count)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][count-1] + pArgs.symbolHeight/2);
-    for(i = count; i < 5; i++){
-        g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
-        g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
-    }
-    for(var i = 0; i < count; i++){
-        g.drawRect(pArgs.leftPos + i*pArgs.symbolWidth + i*pArgs.reelMargin, p[index][i]*pArgs.symbolHeight + pArgs.topMargin, pArgs.symbolWidth, pArgs.symbolHeight);
-    }
+  var name = "btnLine" + (index + 1);
+  var sP = gameManager.objectManager.getObjectByName(name).displayObject;
+  g.moveTo(gameManager.lineBtnCont.position.x + sP.position.x + 50, gameManager.lineBtnCont.position.y + sP.position.y + 25);
+  g.lineTo(pArgs.leftPos, pArgs.topMargin + pArgs.symbolHeight*p[index][0] + pArgs.symbolHeight/2);
+  for(var i = 0; i < count-1; i++){
+      g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+      g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + (i+1)*pArgs.symbolWidth + pArgs.reelMargin, pArgs.topMargin + pArgs.symbolHeight*p[index][i+1] + pArgs.symbolHeight/2);
+  }
+  g.moveTo(pArgs.leftPos + pArgs.reelMargin*(count-1) + (count)*pArgs.symbolWidth, pArgs.topMargin + pArgs.symbolHeight*p[index][count-1] + pArgs.symbolHeight/2);
+  for(i = count; i < 5; i++){
+      g.lineTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+      g.moveTo(pArgs.leftPos + pArgs.reelMargin*i + i*pArgs.symbolWidth + pArgs.symbolWidth/2, pArgs.topMargin + pArgs.symbolHeight*p[index][i] + pArgs.symbolHeight/2);
+  }
+  for(var i = 0; i < count; i++){
+      g.drawRect(pArgs.leftPos + i*pArgs.symbolWidth + i*pArgs.reelMargin, p[index][i]*pArgs.symbolHeight + pArgs.topMargin, pArgs.symbolWidth, pArgs.symbolHeight);
+  }
 
 
-    g.endFill();
-    return g;
+  g.endFill();
+  return g;
 }
 
 reelLines.animateWinningLines = function(winArr){
-    console.log("winning lines are being animated " + winArr);
-    //var f = winArr[0][0]-1;
-    //var g = winArr[0][1];
-    //for(var i = 0; i < winArr.length; i++)
     var cnt = 0;
     var timerArr = [];
+    reelLines.rLTimers = [];
+    var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
+    var animCont = gameManager.objectManager.getObjectByName("animationContainer");
     winArr.forEach(res => {
       var f = res[0]-1;
       var g = res[1];
-      console.log("f: " + f + " g: " + g);
-      var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
       var l = reelLines.drawWinningLine(f,g);
-      console.log("cnt: " + cnt)
-      var t = pixi.timerManager.createTimer(1500 * cnt + 0.1);
+      //console.log("cnt: " + cnt);
+      var t = pixi.timerManager.createTimer(reelLines.winLineDisplayDuration * cnt + 0.1);
+      reelLines.rLTimers.push(t);
       t.start();
+      var wArr = winArr;
       t.on('end', function(del){
         lnCont.displayObject.removeChildren();
         lnCont.displayObject.addChild(l);
-        console.log("working!");
+        animCont.displayObject.removeChildren();
+        cnt = (del - 0.1) / reelLines.winLineDisplayDuration;
+        gameManager.slot.playSymbolAnimationsByLine(winArr, p[winArr[cnt][0]-1], winArr[cnt][1]);
+        gameManager.slot.setActiveLineButton(res[0], false, false);
       });
-      console.log("l: " + l);
-        cnt++;
-      //lnCont.displayObject.addChild(t);
-
-      //return t;//reelLines.drawWinningLine(f,g);
+      cnt++;
     });
+
+    gameManager.slot.endTimer = pixi.timerManager.createTimer(reelLines.winLineDisplayDuration * winArr.length);
+    gameManager.slot.endTimer.start();
+    gameManager.slot.endTimer.on('end', function(){
+      lnCont.displayObject.removeChildren();
+      gameManager.slot.setActiveLineButton(gameManager.slot.activeLine);
+      animCont.displayObject.removeChildren();
+    });
+}
+
+reelLines.stopWinningLineAnimations = function(){
+  gameManager.slot.setActiveLineButton(gameManager.slot.activeLine, true, false);
+  reelLines.rLTimers.forEach(elem => {
+    elem.stop();
+  });
+  var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
+  lnCont.displayObject.removeChildren();
 }
 
 //randomizes reel line data so that you can see it works on all conditions
@@ -394,7 +382,7 @@ function normalizeIndexNumber(ind, arraySize){
         return ind;
 }
 
-},{"./../../../gameManager.js":2,"pixi.js":10}],5:[function(require,module,exports){
+},{"./../../../gameManager.js":2,"pixi.js":9}],5:[function(require,module,exports){
 var server = exports;
 var slot = require('./../slot.js');
 server.name = "game server";
@@ -442,9 +430,9 @@ server.randomizeReels = function (rSize){
     return server.reels;
 }
 
-server.checkWin = function(){
+server.checkWin = function(activeLines){
     var winLines = [];
-    for(var i = 0; i < server.p.length; i++){
+    for(var i = 0; i < activeLines; i++){
         var ctr = 1;
         var first = server.reels[0][(server.spinData[0] + server.p[i][0])];
         for(var j = 1; j<server.noOfReels; j++){
@@ -481,86 +469,116 @@ slot.initializeSlot = function(spinData, reelData){
   for(let i = 0; i < 5; i++){
     var r = new reel(reelData, gameManager.dataManager.settingsData, gameManager.dataManager.assetData);
     r.createReel(spinData[i], i);
-    //console.log(r.cont);
     slot.reelArr.push(r);
     slot.cont.displayObject.addChild(r.tile);
     r.tile.x = (144 + 10) * i;
-    //console.log("cont: " + r.cont);
   }
 
-    //gameManager.stage.addChild(slot.cont);
-  //sc.container.addChild(r.cont);
-  /*r.tile.position.x = 200;
-  sc.container.addChild(r.tile);*/
   return slot;
 }
 
 slot.startSpin = function(){
   //console.log("spinData: " + slot.spinData);
-
+  reelLines.stopWinningLineAnimations();
+  slot.setActiveLineButton(slot.activeLine, true, false);
+  if(slot.lineTimer != undefined)slot.lineTimer.stop();
   slot.spinning = true;
   slot.setSpinButtonText("STOP");
   //if last reel is not spinning, then none of them are. In this example, they spin synchronously so order is not important.
   //if slot is not spinning and pressed spin button, get new spin data from server simulator
 
   if(!slot.spinStarted){
-  gameManager.objectManager.getObjectByName("lineContainer").displayObject.removeChildren();
-  gameManager.objectManager.getObjectByName("animationContainer").displayObject.removeChildren();
+    gameManager.objectManager.getObjectByName("lineContainer").displayObject.removeChildren();
+    gameManager.objectManager.getObjectByName("animationContainer").displayObject.removeChildren();
 
-  //reelLines.deactivateLineButtons();
-  slot.finishedReelCount = 0;
-  if(!slot.reelArr[4].isSpinning){
-      slot.spinData = gameManager.server.randomizeSpin();
-      slot.winData = gameManager.server.checkWin();
-      slot.winData = [[3, 3, 6], [6,4,6]];
-      console.log("win data: " + slot.winData);
-  }
+    //reelLines.deactivateLineButtons();
+    slot.finishedReelCount = 0;
+    if(!slot.reelArr[4].isSpinning){
+        slot.spinData = gameManager.server.randomizeSpin();
+        slot.winData = gameManager.server.checkWin(slot.activeLine);
+        //slot.winData = [[3, 3, 6], [6,4,6], [2, 3, 1], [4,5,9]];
+        console.log("win data: " + slot.winData);
+    }
 
-  //you can trace it on the console if the spin stops on correct position or not. result of every spin will be show on the console.
-  //you can check if visuals are correct by looking at the assets folder
-  console.log("spin is initiated, spin order: " + slot.reelData[0][slot.spinData[0]] + " " + slot.reelData[1][slot.spinData[1]] + " " + slot.reelData[2][slot.spinData[2]] + " " + slot.reelData[3][slot.spinData[3]] + " " + slot.reelData[4][slot.spinData[4]] + " ")
+    //you can trace it on the console if the spin stops on correct position or not.
+    //result of every spin will be show on the console.
+    //you can check if visuals are correct by looking at the assets folder
+    console.log("spin is initiated, spin order: " + slot.reelData[0][slot.spinData[0]]
+    + " " + slot.reelData[1][slot.spinData[1]] + " "
+    + slot.reelData[2][slot.spinData[2]] + " "
+    + slot.reelData[3][slot.spinData[3]] + " "
+    + slot.reelData[4][slot.spinData[4]] + " ");
 
-  slot.tArr = new Array();
-  for(var i = 0; i < 5; i++){
-    //slot.reelArr[i].startSpin(slot.spinData[i]);
-    //console.log(slot.reelArr[i].startSpin);
-    //slot.reelArr[i].startSpin(slot.spinData[this.index]);
+    slot.tArr = new Array();
+    for(var i = 0; i < 5; i++){
+        var t = pixi.timerManager.createTimer(250 * i + 0.1);
+        t.index = i;
+        slot.tArr.push(t);
+    }
+    slot.spinStarted = true;
 
-      var t = pixi.timerManager.createTimer(400 * i + 0.1);
-      t.index = i;
-      slot.tArr.push(t);
-  }
-      slot.spinStarted = true;
+    //if not spinning, start spinning each reel, if spinning, stop them and set the final position
+    for(var i = 0; i < 5; i++){
+        if(!slot.reelArr[i].isSpinning){
+            console.log("target for reel " + i + ": " + slot.reelData[i][slot.spinData[i]] + "\narray: " + slot.reelData[i])
+            slot.reelArr[i].textureChanged = false;
+            slot.tArr[i].start();
+            slot.tArr[i].on('end', function(del){
+              delay((del-0.1)/250);
+            });
 
-      //if not spinning, start spinning each reel, if spinning, stop them and set the final position
-      for(var i = 0; i < 5; i++){
-          if(!slot.reelArr[i].isSpinning){
-              console.log("target for reel " + i + ": " + slot.reelData[i][slot.spinData[i]] + "\narray: " + slot.reelData[i])
-              slot.reelArr[i].textureChanged = false;
-              slot.tArr[i].start();
-              slot.tArr[i].on('end', function(del){
-                delay((del-0.1)/400);
-              });
-
-              function delay(ind){
-                var flag = false;
-                for(var j = ind; j >0; j--){
-                    if(!slot.reelArr[j-1].isSpinning && j > 0)flag = true;
-                }
-                if(!flag){
-                    slot.reelArr[ind].startSpin(slot.spinData[ind]);
-                }
+            function delay(ind){
+              var flag = false;
+              for(var j = ind; j >0; j--){
+                  if(!slot.reelArr[j-1].isSpinning && j > 0)flag = true;
               }
-          }
-      }
+              if(!flag){
+                  slot.reelArr[ind].startSpin(slot.spinData[ind]);
+              }
+            }
+        }
+    }
   }
   else{
       slot.stopSpin(slot.spinData);
   }
 }
 
-slot.stopSpin = function(args){
+slot.setActiveLineButton = function(buttonIndex, setActiveLine = true, buttonClick = true){
+  if(setActiveLine)
+    slot.activeLine = buttonIndex;
+  var lineBtnCont = gameManager.objectManager.getObjectByName("lineButtonContainer");
+  var ctr = 0;
+  lineBtnCont.displayObject.children.forEach(elm =>{
+    ctr++;
+    if(elm.name == ("btnLine" + buttonIndex)){
+      elm.setState("selected");
+      elm.clicked = true;
+    }
+    else{
+      if(!setActiveLine && slot.activeLine != ctr){
+        elm.setState("init");
+        elm.clicked = false;
+      }else if(setActiveLine){
+        elm.setState("init");
+        elm.clicked = false;
+      }
+    }
+  });
 
+  //if the function is invoked by a buttonclick event
+  if(buttonClick){
+    slot.lineTimer = pixi.timerManager.createTimer(2000);
+    slot.lineTimer.start();
+    slot.lineTimer.on('end', function(){
+      var lineCont = gameManager.objectManager.getObjectByName("lineContainer");
+      if(setActiveLine)
+        lineCont.displayObject.removeChildren();
+    });
+  }
+}
+
+slot.stopSpin = function(args){
   for(var i = 0; i < 5; i++){
       slot.reelArr[i].stopReel(slot.spinData[i]);
       //console.log("to stop: " + slot.spinData[i]);
@@ -572,39 +590,28 @@ slot.finishSpinSequence = function(){
     if(slot.winData.length != 0){
         var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
         reelLines.animateWinningLines(slot.winData);
-        //console.log("a: " + a);
-        //lnCont.displayObject.addChild(a);
-        //console.log("server.p: " + gameManager.server.p[slot.winData[0][0]-1]);
-        //slot.playSymbolAnimations(gameManager.server.p[slot.winData[0][0]-1], slot.winData[0].length);
     }
     slot.spinStarted = false;
     slot.spinning = false;
     slot.setSpinButtonText("SPIN");
+    slot.setActiveLineButton(slot.activeLine, true, false);
 }
 
-slot.playSymbolAnimations = function(winArr, animCount){
-    var animCont = slot.gameManager.getObjectByName('animationContainer', slot.gameManager.objects);
+slot.playSymbolAnimationsByLine = function(winArr, winLine, animCount){
+    var animCont = gameManager.objectManager.getObjectByName('animationContainer').displayObject;
+    var reelCont = gameManager.objectManager.getObjectByName('slotGameContainer');
     for(var i = 0; i < animCount; i++){
-        //console.log("line: " + winArr + " count: " + animCount);
-        var an = animationController.playAnimation('win', 50, i, winArr[i]);
-        animCont.addChild(an);
+        var anim = new gameManager.animType();
+        animCont.addChild(anim.createObject("symbolAnim"));
+        anim.displayObject.x = 260 + 154 * i;
+        anim.displayObject.y = 124 + 144 * winLine[i];
+        anim.playAnimation();
     }
 }
 
 
 slot.drawLine = function(v){
-  var lineBtnCont = gameManager.objectManager.getObjectByName("lineButtonContainer");
-  lineBtnCont.displayObject.children.forEach(elm =>{
-    if(elm.name == ("btnLine" + v)){
-      elm.setState("selected");
-      elm.clicked = true;
-    }
-    else{
-      elm.setState("init");
-      elm.clicked = false;
-    }
-  });
-
+  slot.setActiveLineButton(v);
   var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
   if(lnCont.displayObject.children != null)
     lnCont.displayObject.removeChildren();
@@ -616,7 +623,7 @@ slot.setSpinButtonText = function(textVal){
   text.displayObject.content(textVal);
 }
 
-},{"./../../gameManager.js":2,"./reels/reel.js":3,"./reels/reelLines.js":4,"pixi.js":10}],7:[function(require,module,exports){
+},{"./../../gameManager.js":2,"./reels/reel.js":3,"./reels/reelLines.js":4,"pixi.js":9}],7:[function(require,module,exports){
 var pixi = require('pixi.js');
 
 var tapir = require('./../../../../src');
@@ -629,7 +636,7 @@ module.exports = function(){
   this.dynTypeName = "slotType";
 
   this.createObject = function(args){
-    
+
     this.name = args.name;
     //find corresponding loader
 
@@ -660,40 +667,10 @@ module.exports = function(){
   return this;
 }
 
-},{"./../../../../src":35,"./../../gameManager.js":2,"./../slot/serverSim/serverSim.js":5,"./../slot/slot.js":6,"pixi.js":10}],8:[function(require,module,exports){
-var pixi = require('pixi.js');
-
-var tapir = require('./../../../../src');
-var objectManager = tapir.objectManagement.objectManager;
-var assetManager = tapir.loader.assetManager;
-
-module.exports = function(){
-  this.dynTypeName = "spriteType";
-
-  this.createObject = function(args){
-    this.name = args.name;
-    //find corresponding loader
-
-    var o = new pixi.Sprite(gameManager.assetManager.loader.resources[args.background].texture);
-
-    o = objectManager.setCommonProperties(o, args);
-
-    this.displayObject = o;
-
-    objectManager.registerObject(this);
-
-    return o;
-  }
-  this.makeInvisible = function(){
-    this.displayObject.visible = false;
-  }
-  return this;
-}
-
-},{"./../../../../src":35,"pixi.js":10}],9:[function(require,module,exports){
+},{"./../../../../src":34,"./../../gameManager.js":2,"./../slot/serverSim/serverSim.js":5,"./../slot/slot.js":6,"pixi.js":9}],8:[function(require,module,exports){
 !function(e){function t(r){if(i[r])return i[r].exports;var n=i[r]={exports:{},id:r,loaded:!1};return e[r].call(n.exports,n,n.exports,t),n.loaded=!0,n.exports}var i={};return t.m=e,t.c=i,t.p="",t(0)}([function(e,t,i){e.exports=i(4)},function(e,t,i){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}function n(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function a(e,t){if(!e)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!t||"object"!=typeof t&&"function"!=typeof t?e:t}function s(e,t){if("function"!=typeof t&&null!==t)throw new TypeError("Super expression must either be null or a function, not "+typeof t);e.prototype=Object.create(t&&t.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}}),t&&(Object.setPrototypeOf?Object.setPrototypeOf(e,t):e.__proto__=t)}var o=function(){function e(e,t){for(var i=0;i<t.length;i++){var r=t[i];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,i,r){return i&&e(t.prototype,i),r&&e(t,r),t}}();Object.defineProperty(t,"__esModule",{value:!0});var u=i(2),l=r(u),h=function(e){function t(){var e=arguments.length<=0||void 0===arguments[0]?1:arguments[0],i=arguments[1];n(this,t);var r=a(this,Object.getPrototypeOf(t).call(this));return r.time=e,i&&r.addTo(i),r.active=!1,r.isEnded=!1,r.isStarted=!1,r.expire=!1,r.delay=0,r.repeat=0,r.loop=!1,r._delayTime=0,r._elapsedTime=0,r._repeat=0,r}return s(t,e),o(t,[{key:"addTo",value:function(e){return this.manager=e,this.manager.addTimer(this),this}},{key:"remove",value:function(){return this.manager?(this.manager.removeTimer(this),this):void 0}},{key:"start",value:function(){return this.active=!0,this}},{key:"stop",value:function(){return this.active=!1,this.emit("stop",this._elapsedTime),this}},{key:"reset",value:function(){return this._elapsedTime=0,this._repeat=0,this._delayTime=0,this.isStarted=!1,this.isEnded=!1,this}},{key:"update",value:function(e,t){if(this.active){if(this.delay>this._delayTime)return void(this._delayTime+=t);if(this.isStarted||(this.isStarted=!0,this.emit("start",this._elapsedTime)),this.time>this._elapsedTime){var i=this._elapsedTime+t,r=i>=this.time;if(this._elapsedTime=r?this.time:i,this.emit("update",this._elapsedTime,e),r){if(this.loop||this.repeat>this._repeat)return this._repeat++,this.emit("repeat",this._elapsedTime,this._repeat),void(this._elapsedTime=0);this.isEnded=!0,this.active=!1,this.emit("end",this._elapsedTime)}}}}}]),t}(l["default"].utils.EventEmitter);t["default"]=h},function(e,t){e.exports=PIXI},function(e,t,i){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}function n(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}var a=function(){function e(e,t){for(var i=0;i<t.length;i++){var r=t[i];r.enumerable=r.enumerable||!1,r.configurable=!0,"value"in r&&(r.writable=!0),Object.defineProperty(e,r.key,r)}}return function(t,i,r){return i&&e(t.prototype,i),r&&e(t,r),t}}();Object.defineProperty(t,"__esModule",{value:!0});var s=i(1),o=r(s),u=function(){function e(){n(this,e),this.timers=[],this._timersToDelete=[],this._last=0}return a(e,[{key:"update",value:function(e){var t=void 0;e||0===e?t=1e3*e:(t=this._getDeltaMS(),e=t/1e3);for(var i=0;i<this.timers.length;i++){var r=this.timers[i];r.active&&(r.update(e,t),r.isEnded&&r.expire&&r.remove())}if(this._timersToDelete.length){for(var i=0;i<this._timersToDelete.length;i++)this._remove(this._timersToDelete[i]);this._timersToDelete.length=0}}},{key:"removeTimer",value:function(e){this._timersToDelete.push(e)}},{key:"addTimer",value:function(e){e.manager=this,this.timers.push(e)}},{key:"createTimer",value:function(e){return new o["default"](e,this)}},{key:"_remove",value:function(e){var t=this.timers.indexOf(e);t>0&&this.timers.splice(t,1)}},{key:"_getDeltaMS",value:function(){0===this._last&&(this._last=Date.now());var e=Date.now(),t=e-this._last;return this._last=e,t}}]),e}();t["default"]=u},function(e,t,i){"use strict";function r(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var n=i(2),a=r(n),s=i(3),o=r(s),u=i(1),l=r(u),h={TimerManager:o["default"],Timer:l["default"]};a["default"].timerManager||(a["default"].timerManager=new o["default"],a["default"].timer=h),t["default"]=h}]);
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 (function (global){
 /*!
  * pixi.js - v4.0.3
@@ -715,12 +692,12 @@ this.processInteractive(this.mouse.global,this.renderer._lastObjectRendered,this
 
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = {
     manipulator:     require('./manipulations')
 };
 
-},{"./manipulations":12}],12:[function(require,module,exports){
+},{"./manipulations":11}],11:[function(require,module,exports){
 "use strict";
 
 var manipulator = exports;
@@ -753,7 +730,7 @@ manipulator.searchArrayElemByPropName = function(propName, propValue, array){
   return null;
 }
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = {
     common: require('./common/'),
     loader: require('./loader/'),
@@ -761,7 +738,7 @@ module.exports = {
     objectManagement : require('./objectManagement/')
 };
 
-},{"./common/":11,"./loader/":16,"./objectManagement/":23,"./sceneManagement/":32}],14:[function(require,module,exports){
+},{"./common/":10,"./loader/":15,"./objectManagement/":22,"./sceneManagement/":31}],13:[function(require,module,exports){
 "use strict";
 
 
@@ -865,7 +842,7 @@ assetManager.findBatchBySceneName = function(sceneName){
   return manipulator.searchArrayElemByPropName("scene", sceneName, assetManager.assets);
 }
 
-},{"./../common/manipulations.js":12,"./loaders/animAssetLoader.js":17,"./loaders/assetLoader.js":18,"./loaders/fileLoader.js":19,"pixi.js":10}],15:[function(require,module,exports){
+},{"./../common/manipulations.js":11,"./loaders/animAssetLoader.js":16,"./loaders/assetLoader.js":17,"./loaders/fileLoader.js":18,"pixi.js":9}],14:[function(require,module,exports){
 "use strict";
 
 var dataManager = exports;
@@ -1002,14 +979,14 @@ function checkFinished(total){
     return false;
 }
 
-},{"./../common/manipulations.js":12,"./loaders/fileLoader.js":19}],16:[function(require,module,exports){
+},{"./../common/manipulations.js":11,"./loaders/fileLoader.js":18}],15:[function(require,module,exports){
 module.exports = {
     loaders: require('./loaders/'),
     assetManager: require('./assetManager'),
     dataManager : require('./dataManager')
 };
 
-},{"./assetManager":14,"./dataManager":15,"./loaders/":21}],17:[function(require,module,exports){
+},{"./assetManager":13,"./dataManager":14,"./loaders/":20}],16:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -1058,7 +1035,7 @@ module.exports = function(args){
     return this;
 }
 
-},{"pixi.js":10}],18:[function(require,module,exports){
+},{"pixi.js":9}],17:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -1094,7 +1071,7 @@ module.exports = function(args){
     return this;
 }
 
-},{"pixi.js":10}],19:[function(require,module,exports){
+},{"pixi.js":9}],18:[function(require,module,exports){
 "use strict";
 
 var fileLoader = exports;
@@ -1133,10 +1110,10 @@ fileLoader.loadFile = function (path, callback, callbackVar = null, dataType = n
     fileObject.send(null);
 }
 
-},{"./../dataManager.js":15}],20:[function(require,module,exports){
+},{"./../dataManager.js":14}],19:[function(require,module,exports){
 //to change load size in main json file
 
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 module.exports = {
     assetLoader: require('./assetLoader'),
     animAssetLoader: require('./animAssetLoader'),
@@ -1145,16 +1122,16 @@ module.exports = {
     jsonProcessor : require('./jsonProcessor')
 };
 
-},{"./animAssetLoader":17,"./assetLoader":18,"./fileLoader":19,"./fileWriter":20,"./jsonProcessor":22}],22:[function(require,module,exports){
+},{"./animAssetLoader":16,"./assetLoader":17,"./fileLoader":18,"./fileWriter":19,"./jsonProcessor":21}],21:[function(require,module,exports){
 var jsonProcessor = exports;
 
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 module.exports = {
     objectTypes: require('./objectTypes/'),
     objectManager: require('./objectManager')
 };
 
-},{"./objectManager":24,"./objectTypes/":30}],24:[function(require,module,exports){
+},{"./objectManager":23,"./objectTypes/":29}],23:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -1297,7 +1274,10 @@ objectManager.setCommonFunctions = function(o){
   o.setObjectProperty = function(args){
     var objToSet = objectManager.getObjectByName(args.target);
     //console.log("setting object property " + objToSet.displayObject.name);
-    objToSet.displayObject.setProperty(args.props);
+    if(objToSet != "this")
+      objToSet.displayObject.setProperty(args.props);
+    else
+      o.displayObject.setProperty(args.props);
   }
 
   o.processState = function(args){
@@ -1415,7 +1395,7 @@ objectManager.broadcastMessage = function(o, args){
 
 }
 
-},{"./../../":35,"./../common/manipulations":12,"./../loader/assetManager.js":14,"./objectTypes":30,"pixi.js":10}],25:[function(require,module,exports){
+},{"./../../":34,"./../common/manipulations":11,"./../loader/assetManager.js":13,"./objectTypes":29,"pixi.js":9}],24:[function(require,module,exports){
 "use strict";
 
 var animation = exports;
@@ -1428,7 +1408,6 @@ module.exports = function(){
   this.createObject = function(args){
 
     var data = dataManager.getAnimDataByName(args);
-    console.log(data);
     this.name = args;
 
     var resources = gameManager.assetManager.loader.resources;
@@ -1459,7 +1438,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../../loader/assetManager.js":14,"./../../loader/dataManager.js":15}],26:[function(require,module,exports){
+},{"./../../loader/assetManager.js":13,"./../../loader/dataManager.js":14}],25:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -1519,11 +1498,13 @@ module.exports = function(){
     }
 
     o.mouseup = function(){
-      if(args.actions != null && args.actions.mouseUp != null)
-        o.processState(args.actions.mouseUp)
+      if(args.actions != null && args.actions.mouseUp != null){
+        o.processState(args.actions.mouseUp)}
     }
 
     o.mouseover = function(){
+      if(args.actions != null && args.actions.mouseOver != null)
+        o.processState(args.actions.mouseOver)
       if(o.active){
         if(o.toggleButton){
           if(!o.clicked){
@@ -1535,22 +1516,20 @@ module.exports = function(){
             o.setTexture(o.overImage);
         }
       }
-      if(args.actions != null && args.actions.mouseOver != null)
-        o.processState(args.actions.mouseOver)
     }
 
     o.mouseout = function(){
-      if(o.active && !o.clicked)
-          o.setTexture(o.defaultImage);
       if(args.actions != null && args.actions.mouseOut != null)
         o.processState(args.actions.mouseOut)
+      if(o.active && !o.clicked)
+          o.setTexture(o.defaultImage);
     }
 
     o.click = function(){
-      if(o.toggleButton)
-        o.toggle();
       if(args.actions != null && args.actions.click != null)
         o.processState(args.actions.click)
+      if(o.toggleButton)
+        o.toggle();
     }
     /*
       if(args.actions.touchStart != null){
@@ -1640,7 +1619,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../../loader/assetManager.js":14,"./../objectManager.js":24,"pixi.js":10}],27:[function(require,module,exports){
+},{"./../../loader/assetManager.js":13,"./../objectManager.js":23,"pixi.js":9}],26:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -1662,7 +1641,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../objectManager.js":24,"pixi.js":10}],28:[function(require,module,exports){
+},{"./../objectManager.js":23,"pixi.js":9}],27:[function(require,module,exports){
 "use strict";
 var manipulator = require('./../../common/manipulations.js');
 var dynamicTypes = exports;
@@ -1677,7 +1656,7 @@ dynamicTypes.searchDynamicTypeByName = function(name){
   return manipulator.searchArrayElemByPropName("dynTypeName", name, dynamicTypes.types);
 }
 
-},{"./../../common/manipulations.js":12}],29:[function(require,module,exports){
+},{"./../../common/manipulations.js":11}],28:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -1715,7 +1694,7 @@ module.exports = function(){
   return this;
 }
 
-},{"./../../loader/assetManager.js":14,"./../objectManager.js":24,"pixi.js":10}],30:[function(require,module,exports){
+},{"./../../loader/assetManager.js":13,"./../objectManager.js":23,"pixi.js":9}],29:[function(require,module,exports){
 module.exports = {
     animation: require('./animation'),
     button : require('./button'),
@@ -1725,7 +1704,7 @@ module.exports = {
     textObject : require('./textObject')
 };
 
-},{"./animation":25,"./button":26,"./container":27,"./dynamicTypes":28,"./gameObject":29,"./textObject":31}],31:[function(require,module,exports){
+},{"./animation":24,"./button":25,"./container":26,"./dynamicTypes":27,"./gameObject":28,"./textObject":30}],30:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -1862,13 +1841,13 @@ module.exports = function(){
   return this;
 }
 
-},{"./../objectManager.js":24,"pixi.js":10}],32:[function(require,module,exports){
+},{"./../objectManager.js":23,"pixi.js":9}],31:[function(require,module,exports){
 module.exports = {
     sceneManager:     require('./sceneManager'),
     scene: require('./scene')
 };
 
-},{"./scene":33,"./sceneManager":34}],33:[function(require,module,exports){
+},{"./scene":32,"./sceneManager":33}],32:[function(require,module,exports){
 /******************************************************************************
 Scene is simply a pixi container. There can be multiple scenes in a game so
 there can be multiple instances of scene class. All scnes are manipulated by
@@ -1936,7 +1915,7 @@ module.exports = function(data){
 }
 /*end-member functions*********************************************************/
 
-},{"./../loader/dataManager.js":15,"./../objectManagement/objectManager.js":24,"pixi.js":10}],34:[function(require,module,exports){
+},{"./../loader/dataManager.js":14,"./../objectManagement/objectManager.js":23,"pixi.js":9}],33:[function(require,module,exports){
 "use strict";
 
 var pixi = require('pixi.js');
@@ -1976,7 +1955,7 @@ sceneManager.closeCurrentScene = function(){
   sceneManager.currentScene.hide();
 }
 
-},{"./../common/manipulations.js":12,"./../loader/dataManager.js":15,"./scene.js":33,"pixi.js":10}],35:[function(require,module,exports){
+},{"./../common/manipulations.js":11,"./../loader/dataManager.js":14,"./scene.js":32,"pixi.js":9}],34:[function(require,module,exports){
 var core = module.exports = require('./engine/');
 
-},{"./engine/":13}]},{},[1]);
+},{"./engine/":12}]},{},[1]);
