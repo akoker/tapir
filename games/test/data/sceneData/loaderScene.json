@@ -8,7 +8,7 @@
       "y": 400,
       "props":{
           "fontSize": 50,
-          "fill": "#000000",
+          "fill": "#ffffff",
           "align": "center"
       }
     }

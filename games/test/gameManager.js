@@ -112,6 +112,8 @@ function loadAssets(){
       gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(gameManager.server.selectedLines);
       gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(gameManager.server.spinValue);;
       gameManager.objectManager.getObjectByName("winText").displayObject.content("WELCOME!");
+
+      resizeFirst();
     }
   }
 
@@ -130,4 +132,31 @@ function update(){
       }
     }
   }
+
+    /**********place the game on the center of the screen**********/
+    renderer.view.style.position = 'absolute';
+    renderer.view.style.left = '50%';
+    renderer.view.style.top = '50%';
+    renderer.view.style.transform = 'translate3d( -50%, -50%, 0 )';
+    /**************************************************************/
+}
+
+function resizeFirst() {
+    gameManager.layoutRatio = 1280/800;//params.width / params.height;
+
+    resize();
+    window.onresize = resize;
+
+}
+
+function resize() {
+    if (window.innerWidth / window.innerHeight >= gameManager.layoutRatio) {
+        var w = window.innerHeight * gameManager.layoutRatio;
+        var h = window.innerHeight;
+    } else {
+        var w = window.innerWidth;
+        var h = window.innerWidth / gameManager.layoutRatio;
+    }
+    renderer.view.style.width = w + 'px';
+    renderer.view.style.height = h + 'px';
 }
