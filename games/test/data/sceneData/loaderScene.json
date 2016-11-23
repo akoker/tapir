@@ -1,0 +1,16 @@
+{
+  "name": "loaderScene",
+  "scene": [
+    {
+      "type": "textObject",
+      "name": "loaderText",
+      "x": 600,
+      "y": 400,
+      "props":{
+          "fontSize": 50,
+          "fill": "#000000",
+          "align": "center"
+      }
+    }
+  ]
+}

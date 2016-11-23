@@ -10,6 +10,7 @@ var gameObject = objectTypes.gameObject;
 var container = objectTypes.container;
 var button = objectTypes.button;
 var textObject = objectTypes.textObject;
+var animation = objectTypes.animation;
 
 var assetManager =  require('./../loader/assetManager.js');
 var manipulator = require('./../common/manipulations');
@@ -26,10 +27,10 @@ objectManager.setCommonProperties = function(o, args){
   args.y != null ? o.position.y = args.y : o.position.y = 0;
   args.visible != null ? o.visible = args.visible : o.visible = true;
   args.tag != null ? o.tag = args.tag : o.tag = "none";
+  args.interactive != null ? o.interactive = args.interactive : o.interactive = true;
   if(args.width != null) o.width = args.width;
   if(args.height != null) o.height = args.height;
   if(args.states != null) o.states = args.states;
-  o.interactive = true;
   args.buttonMode != null ? o.buttonMode = args.buttonMode : o.buttonMode = false;
 
   if(args.state != null)o.setState(args.state);
@@ -110,11 +111,11 @@ objectManager.registerActions = function(o, args){
 
 objectManager.setCommonFunctions = function(o){
 
-  o.setProperty = function(args){
+  /*o.setProperty = function(args){
     args.foreach(e => {
       o[e.property] = e.value;
     })
-  }
+  }*/
 
   o.executeFunction = function(name, args){
     o[name](args);
@@ -138,12 +139,15 @@ objectManager.setCommonFunctions = function(o){
   }
 
   o.setObjectProperty = function(args){
-    var objToSet = objectManager.getObjectByName(args.target);
-    //console.log("setting object property " + objToSet.displayObject.name);
-    if(objToSet != "this")
+  //console.log("setting object property " + objToSet.displayObject.name);
+    if(args.target != "this"){
+      var objToSet = objectManager.getObjectByName(args.target);
       objToSet.displayObject.setProperty(args.props);
-    else
-      o.displayObject.setProperty(args.props);
+    }
+    else{
+      var objToSet = objectManager.getObjectByName(o.name);
+      o.setProperty(args.props);
+    }
   }
 
   o.processState = function(args){
@@ -221,6 +225,9 @@ objectManager.createObject = function(args){
     case "object":
       //console.log("game object");
       return new gameObject().createObject(args);
+    case "animation":
+      //console.log("game object");
+      return new animation().createObject(args);
     case "container":
       //console.log("container object");
       return new container().createObject(args);

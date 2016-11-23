@@ -31,8 +31,10 @@ module.exports = function(){
     args.toggleButton != null ? o.toggleButton = args.toggleButton : o.toggleButton = false;
     args.active != null ? o.active = args.active : o.active = true;
 
+    if(o.background != null)
+      o.defaultImage = args.background;
     if(args.images != null){
-      args.images.default != null ? o.defaultImage = args.images.default : o.defaultImage = args.background;
+      if(args.images.default != null) o.defaultImage = args.images.default;
       o.clickedImage = args.images.clicked;
       o.activeImage = args.images.active;
       o.passiveImage = args.images.passive;
@@ -80,8 +82,8 @@ module.exports = function(){
     o.mouseout = function(){
       if(args.actions != null && args.actions.mouseOut != null)
         o.processState(args.actions.mouseOut)
-      if(o.active && !o.clicked)
-          o.setTexture(o.defaultImage);
+      if(o.active && !o.clicked){
+        o.setTexture(o.defaultImage);}
     }
 
     o.click = function(){

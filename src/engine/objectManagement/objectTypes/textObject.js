@@ -13,9 +13,25 @@ module.exports = function(){
     args.props.fontSize == null ? fSize = 20 : fSize = args.props.fontSize;
     var fFill;
     args.props.fill == null ? fFill = 0xffffff : fFill = args.props.fill;
-    var fAlign;
-    args.props.align == null ? fAlign = 'left' : fAlign = args.props.align;
-    var text = new PIXI.Text(args.content,{fontFamily : fFamily, fontSize: fSize, fill : fFill, align : fAlign});
+    var style = {fontFamily : fFamily, fontSize: fSize, fill : fFill}
+    var text = new PIXI.Text(args.content, style);
+    if(args.props.width != undefined)text.textWidth = args.props.width;
+    if(args.props.height != undefined)text.textHeight = args.props.height;
+
+    switch(args.props.align){
+      case "center":
+        text.anchor.set(0.5,0.5);
+        break;
+      case "left":
+        text.anchor.set(0,0.5);
+        break;
+      case "right":
+        text.anchor.set(1,0.5);
+        break;
+      default:
+        text.anchor.set(0,0.5);
+        break;
+    }
     text.name = args.name;
 
     args.x == null ? text.position.x = 0 : text.position.x = args.x;

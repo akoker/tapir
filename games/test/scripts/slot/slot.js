@@ -11,6 +11,7 @@ slot.spinning = false;
 slot.spinData = [];
 slot.reelData = [];
 
+
 slot.initializeSlot = function(spinData, reelData){
   slot.reelData = reelData;
   slot.spinData = spinData;
@@ -28,6 +29,8 @@ slot.initializeSlot = function(spinData, reelData){
 
 slot.startSpin = function(){
   //console.log("spinData: " + slot.spinData);
+  let gameLogoAnim = gameManager.objectManager.getObjectByName("gameLogo");
+  gameLogoAnim.displayObject.playAnimation();
   reelLines.stopWinningLineAnimations();
   slot.setActiveLineButton(slot.activeLine, true, false);
   if(slot.lineTimer != undefined)slot.lineTimer.stop();
@@ -37,8 +40,10 @@ slot.startSpin = function(){
   //if slot is not spinning and pressed spin button, get new spin data from server simulator
 
   if(!slot.spinStarted){
+    slot.updateWinText("Good Luck!");
     gameManager.objectManager.getObjectByName("lineContainer").displayObject.removeChildren();
     gameManager.objectManager.getObjectByName("animationContainer").displayObject.removeChildren();
+    gameManager.objectManager.getObjectByName("cashTextObject").displayObject.setState("stop");
 
     //reelLines.deactivateLineButtons();
     slot.finishedReelCount = 0;
@@ -47,6 +52,7 @@ slot.startSpin = function(){
         slot.winData = gameManager.server.checkWin(slot.activeLine);
         //slot.winData = [[3, 3, 6], [6,4,6], [2, 3, 1], [4,5,9]];
         console.log("win data: " + slot.winData);
+        slot.updateCashText();
     }
 
     //you can trace it on the console if the spin stops on correct position or not.
@@ -68,24 +74,24 @@ slot.startSpin = function(){
 
     //if not spinning, start spinning each reel, if spinning, stop them and set the final position
     for(var i = 0; i < 5; i++){
-        if(!slot.reelArr[i].isSpinning){
-            console.log("target for reel " + i + ": " + slot.reelData[i][slot.spinData[i]] + "\narray: " + slot.reelData[i])
-            slot.reelArr[i].textureChanged = false;
-            slot.tArr[i].start();
-            slot.tArr[i].on('end', function(del){
-              delay((del-0.1)/250);
-            });
+      if(!slot.reelArr[i].isSpinning){
+        console.log("target for reel " + i + ": " + slot.reelData[i][slot.spinData[i]] + "\narray: " + slot.reelData[i])
+        slot.reelArr[i].textureChanged = false;
+        slot.tArr[i].start();
+        slot.tArr[i].on('end', function(del){
+          delay((del-0.1)/250);
+        });
 
-            function delay(ind){
-              var flag = false;
-              for(var j = ind; j >0; j--){
-                  if(!slot.reelArr[j-1].isSpinning && j > 0)flag = true;
-              }
-              if(!flag){
-                  slot.reelArr[ind].startSpin(slot.spinData[ind]);
-              }
-            }
+        function delay(ind){
+          var flag = false;
+          for(var j = ind; j >0; j--){
+              if(!slot.reelArr[j-1].isSpinning && j > 0)flag = true;
+          }
+          if(!flag){
+              slot.reelArr[ind].startSpin(slot.spinData[ind]);
+          }
         }
+      }
     }
   }
   else{
@@ -130,20 +136,41 @@ slot.setActiveLineButton = function(buttonIndex, setActiveLine = true, buttonCli
 slot.stopSpin = function(args){
   for(var i = 0; i < 5; i++){
       slot.reelArr[i].stopReel(slot.spinData[i]);
-      //console.log("to stop: " + slot.spinData[i]);
   }
 }
 
 slot.finishSpinSequence = function(){
     console.log("spin is finished");
+    let gameLogoAnim = gameManager.objectManager.getObjectByName("gameLogo");
+    gameLogoAnim.displayObject.gotoAndStop(0);
     if(slot.winData.length != 0){
         var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
         reelLines.animateWinningLines(slot.winData);
+        gameManager.objectManager.getObjectByName("cashTextObject").displayObject.setState("play");
+        slot.updateWinText();
+    }
+    else{
+      slot.updateWinText("Try Again!")
     }
     slot.spinStarted = false;
     slot.spinning = false;
     slot.setSpinButtonText("SPIN");
     slot.setActiveLineButton(slot.activeLine, true, false);
+    gameManager.server.updateWallet();
+    slot.updateCashText();
+}
+
+slot.updateCashText = function(){
+  var cashText = gameManager.objectManager.getObjectByName("cashText");
+  cashText.displayObject.content(gameManager.server.wallet);
+}
+
+slot.updateWinText = function(text = null){
+  var winText = gameManager.objectManager.getObjectByName("winText");
+  if(text == null)
+    winText.displayObject.content("You Won " + gameManager.server.earnings);
+  else
+    winText.displayObject.content(text);
 }
 
 slot.playSymbolAnimationsByLine = function(winArr, winLine, animCount){
@@ -151,20 +178,61 @@ slot.playSymbolAnimationsByLine = function(winArr, winLine, animCount){
     var reelCont = gameManager.objectManager.getObjectByName('slotGameContainer');
     for(var i = 0; i < animCount; i++){
         var anim = new gameManager.animType();
-        animCont.addChild(anim.createObject("symbolAnim"));
+        animCont.addChild(anim.instantiateAnimByName("symbolAnim"));
         anim.displayObject.x = 260 + 154 * i;
         anim.displayObject.y = 124 + 144 * winLine[i];
-        anim.playAnimation();
+        anim.displayObject.playAnimation();
     }
 }
 
+slot.increaseNumberOfLines = function(){
+  let retObj = gameManager.server.increaseNumberOfLines();
+  gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(retObj.selectedLines);
+  gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+  slot.drawLine(retObj.selectedLines, true);
+}
 
-slot.drawLine = function(v){
+slot.decreaseNumberOfLines = function(){
+  let retObj = gameManager.server.decreaseNumberOfLines();
+  gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(retObj.selectedLines);
+  gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+  slot.drawLine(retObj.selectedLines, true);
+}
+
+slot.increaseCoinValue = function(){
+  let retObj = gameManager.server.increaseCoinValue();
+  gameManager.objectManager.getObjectByName("coinValueText").displayObject.content(retObj.coinValue);
+  gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+}
+
+slot.decreaseCoinValue = function(){
+  let retObj = gameManager.server.decreaseCoinValue();
+  gameManager.objectManager.getObjectByName("coinValueText").displayObject.content(retObj.coinValue);
+  gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+}
+
+slot.drawLine = function(v, inc=false){
   slot.setActiveLineButton(v);
   var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
   if(lnCont.displayObject.children != null)
     lnCont.displayObject.removeChildren();
-  lnCont.displayObject.addChild(gameManager.reelLines.drawLine(v));
+
+
+  if(!inc){
+    lnCont.displayObject.addChild(gameManager.reelLines.drawLine(v));
+    let retObj = gameManager.server.setNumberOfLines(v);
+    gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(retObj.selectedLines);
+    gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+  }
+  else{
+    for(var i = 1; i < v+1; i++){
+      var t = pixi.timerManager.createTimer(i * 100);
+      t.start();
+      t.on('end', function f(t){
+        lnCont.displayObject.addChild(gameManager.reelLines.drawLine(t/100));
+      });
+    }
+  }
 }
 
 slot.setSpinButtonText = function(textVal){

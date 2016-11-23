@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "browserify": "^13.1.0",
+    "pixi-movieclip-speed": "0.0.1",
     "pixi-timer": "^1.0.1",
     "pixi.js": "^4.0.3"
   },

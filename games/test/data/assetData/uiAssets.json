@@ -13,10 +13,6 @@
         "path": "back.png"
     },
     {
-        "name" : "logo",
-        "path": "logo.png"
-    },
-    {
         "name" : "cliffhanger",
         "path": "cliffhanger.png"
     },
@@ -45,6 +41,10 @@
         "path": "paytable.png"
     },
     {
+        "name": "winTextBack",
+        "path": "winTextBack.png"
+    },
+    {
         "name": "window_2",
         "path": "window_2.png"
     },
@@ -55,6 +55,18 @@
     {
         "name": "symbolValues",
         "path": "symbolValues.png"
+    },
+    {
+        "name": "textBack",
+        "path": "b2.png"
+    },
+    {
+        "name": "textPlus",
+        "path": "b3.png"
+    },
+    {
+        "name": "textMinus",
+        "path": "b1.png"
     },
     {
         "name": "lineBtn1",

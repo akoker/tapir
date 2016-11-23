@@ -36,11 +36,33 @@
         },
         "children": [
           {
-            "type": "object",
+            "type": "animation",
             "name": "cliffhanger",
+            "animRegName": "minerAnim",
             "background": "cliffhanger",
             "x": 1050,
-            "y": 200
+            "y": 200,
+            "buttonMode": true,
+            "loop": true,
+            "playDefault": false,
+            "actions":{
+              "mouseOver":{
+                "setObjectProperty":{
+                  "target": "this",
+                  "props":{
+                    "playAnimation":""
+                  }
+                }
+              },
+              "mouseOut":{
+                "setObjectProperty":{
+                  "target": "this",
+                  "props":{
+                    "gotoAndStop":1
+                  }
+                }
+              }
+            }
           }
         ]
       },
@@ -61,11 +83,11 @@
                 "type": "textObject",
                 "name": "spinText",
                 "content": "SPIN",
-                "x": 60,
-                "y": 83,
+                "x": 100,
+                "y": 107,
                 "props":{
                     "fontSize": 35,
-                    "fill": "0x234567",
+                    "fill": "#234567",
                     "align": "center"
                 }
             }
@@ -75,8 +97,6 @@
             "executeDynamicCode":{
               "code": "gameManager.slot.startSpin();"
             }
-          },
-          "clicked":{
           }
         },
         "x": 540,
@@ -98,11 +118,351 @@
           "y": 0
       },
       {
+        "name": "cashTextObject",
+        "x": 495,
+        "y": 515,
+        "type": "animation",
+        "animRegName": "winBackAnim",
+        "loop": true,
+        "playDefault": false,
+        "states":{
+          "play":{
+            "setObjectProperty":{
+              "target": "winBackIdleBG",
+              "props":{
+                "setState":"hide"
+              }
+            },
+            "playAnimation":""
+          },
+          "stop":{
+            "setObjectProperty":{
+              "target": "winBackIdleBG",
+              "props":{
+                "setState":"show"
+              }
+            },
+            "gotoAndStop":0
+          }
+        },
+        "children":[
+          {
+            "type": "object",
+            "name": "winBackIdleBG",
+            "x": 1,
+            "y": 7,
+            "background": "winTextBack",
+            "states":{
+              "show":{
+                "visible": true
+              },
+              "hide":{
+                "visible": false
+              }
+            }
+          },
+          {
+            "type": "textObject",
+            "name": "winText",
+            "x": 147,
+            "y": 54,
+            "props":{
+              "fontSize": 30,
+              "fill": "#fffff2",
+              "align": "center",
+              "width": 400
+            }
+          }
+        ]
+      },
+      {
+        "type": "textObject",
+        "name": "spinValueLabel",
+        "x": 941,
+        "y": 615,
+        "content": "Total Cash",
+        "props":{
+          "fontSize": 20,
+          "fill": "#fffff2",
+          "align": "center",
+          "width": 400
+        }
+      },
+      {
+        "type": "object",
+        "name": "cashTextObject",
+        "background": "textBack",
+        "x": 850,
+        "y": 630,
+        "children":[
+          {
+            "type": "textObject",
+            "name": "cashText",
+            "x": 91,
+            "y": 13,
+            "props":{
+              "fontSize": 20,
+              "fill": "#fffff2",
+              "align": "center",
+              "width": 400
+            }
+          }
+        ]
+      },
+      {
+        "type": "textObject",
+        "name": "spinValueLabel",
+        "x": 941,
+        "y": 685,
+        "content": "Spin Value",
+        "props":{
+          "fontSize": 20,
+          "fill": "#fffff2",
+          "align": "center",
+          "width": 400
+        }
+      },
+      {
+        "type": "object",
+        "name": "spinValueObject",
+        "background": "textBack",
+        "x": 850,
+        "y": 700,
+        "children":[
+          {
+            "type": "textObject",
+            "name": "spinValueText",
+            "x": 91,
+            "y": 13,
+            "props":{
+              "fontSize": 20,
+              "fill": "#fffff2",
+              "align": "center",
+              "width": 400
+            }
+          }
+        ]
+      },
+      {
+        "type": "textObject",
+        "name": "coinValueLabel",
+        "x": 341,
+        "y": 615,
+        "content": "Reel Lines",
+        "props":{
+          "fontSize": 20,
+          "fill": "#fffff2",
+          "align": "center",
+          "width": 400
+        }
+      },
+      {
+        "type": "object",
+        "name": "lineNumberObject",
+        "background": "textBack",
+        "x": 250,
+        "y": 630,
+        "children":[
+          {
+            "type": "button",
+            "name": "btnLineNumberMinus",
+            "background": "textMinus",
+            "x": -28,
+            "y": 0,
+            "buttonMode": true,
+            "actions":{
+              "click":{
+                "executeDynamicCode":{
+                  "code": "gameManager.slot.decreaseNumberOfLines();"
+                }
+              }
+            },
+            "children":[
+              {
+                "type": "textObject",
+                "name": "btnLineNumberMinusSign",
+                "x": 9,
+                "y": 13,
+                "content": "-",
+                "interactive": false,
+                "props":{
+                  "fontSize": 40,
+                  "fill": "#00000f",
+                  "align": "center",
+                  "width": 400
+                }
+              }
+            ]
+          },
+          {
+            "type": "textObject",
+            "name": "lineNumberText",
+            "x": 91,
+            "y": 13,
+            "props":{
+              "fontSize": 20,
+              "fill": "#fffff2",
+              "align": "center",
+              "width": 400
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnLineNumberPlus",
+            "background": "textPlus",
+            "x": 177,
+            "y": 0,
+            "buttonMode": true,
+            "actions":{
+              "click":{
+                "executeDynamicCode":{
+                  "code": "gameManager.slot.increaseNumberOfLines();"
+                }
+              }
+            },
+            "children":[
+              {
+                "type": "textObject",
+                "name": "btnLineNumberPlusSign",
+                "x": 21,
+                "y": 15,
+                "content": "+",
+                "interactive": false,
+                "props":{
+                  "fontSize": 30,
+                  "fill": "#00000f",
+                  "align": "center",
+                  "width": 400
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "textObject",
+        "name": "coinValueLabel",
+        "x": 341,
+        "y": 685,
+        "content": "Coin Value",
+        "props":{
+          "fontSize": 20,
+          "fill": "#fffff2",
+          "align": "center",
+          "width": 400
+        }
+      },
+      {
+        "type": "object",
+        "name": "coinValueObject",
+        "background": "textBack",
+        "x": 250,
+        "y": 700,
+        "children":[
+          {
+            "type": "button",
+            "name": "btnCoinValueMinus",
+            "background": "textMinus",
+            "x": -28,
+            "y": 0,
+            "buttonMode": true,
+            "actions":{
+              "click":{
+                "executeDynamicCode":{
+                  "code": "gameManager.slot.decreaseCoinValue();"
+                }
+              }
+            },
+            "children":[
+              {
+                "type": "textObject",
+                "name": "btnCoinValueMinusSign",
+                "x": 9,
+                "y": 13,
+                "content": "-",
+                "interactive": false,
+                "props":{
+                  "fontSize": 40,
+                  "fill": "#00000f",
+                  "align": "center",
+                  "width": 400
+                }
+              }
+            ]
+          },
+          {
+            "type": "textObject",
+            "name": "coinValueText",
+            "x": 91,
+            "y": 13,
+            "props":{
+              "fontSize": 20,
+              "fill": "#fffff2",
+              "align": "center",
+              "width": 400
+            }
+          },
+          {
+            "type": "button",
+            "name": "btnCoinValuePlus",
+            "background": "textPlus",
+            "x": 177,
+            "y": 0,
+            "buttonMode": true,
+            "actions":{
+              "click":{
+                "executeDynamicCode":{
+                  "code": "gameManager.slot.increaseCoinValue();"
+                }
+              }
+            },
+            "children":[
+              {
+                "type": "textObject",
+                "name": "btnCoinValuePlusSign",
+                "x": 21,
+                "y": 15,
+                "content": "+",
+                "interactive": false,
+                "props":{
+                  "fontSize": 30,
+                  "fill": "#00000f",
+                  "align": "center",
+                  "width": 400
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
           "type": "object",
           "name": "gameLogo",
-          "background": "logo",
-          "x": 400,
-          "y": -20
+          "x": 480,
+          "y": 30,
+          "type": "animation",
+          "animRegName": "logoAnim",
+          "buttonMode": true,
+          "loop": true,
+          "playDefault": false,
+          "states":{
+            "play":{
+              "setObjectProperty":{
+                "target": "this",
+                "props":{
+                  "playAnimation":""
+                }
+              }
+            },
+            "stop":{
+              "setObjectProperty":{
+                "target": "this",
+                "props":{
+                  "gotoAndStop":0
+                }
+              }
+            }
+          }
       },
       {
           "type": "object",

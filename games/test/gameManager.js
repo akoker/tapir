@@ -9,6 +9,8 @@ var tapir = require('./../../src/');
 
 //gameManager is the main class of the game
 var gameManager = exports;
+gameManager.loadCounter = 0;
+gameManager.totalAssetsToLoad = 159;
 
 //managers are assigned to the game Manager to be reachable from dynamic code
 gameManager.objectManager = tapir.objectManagement.objectManager;
@@ -32,7 +34,7 @@ var slotType = require('./scripts/types/slotType.js');
 var gameDataPath = ('games/test/data/game.json');
 
 //setting up renderer and stage
-var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true, resolution: window.devicePixelRatio || 1});
+var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true});
 gameManager.stage = new pixi.Container();
 
 var gameDiv = document.getElementById('gameDiv');
@@ -62,19 +64,36 @@ function loadAssets(){
   //registering a dynamic object type
   dynamicTypes.registerDynamicObjectType(new slotType());
 
+  //gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("symbolTextures"), assetsLoaded);
+
   console.log("started loading assets ");
+
+  var loaderSc = new scene(gameManager.dataManager.getSceneDataByName("loaderScene"));
+
+  gameManager.stage.addChild(loaderSc.container);
+
+  gameManager.assetManager.loaderScreenFunction = updateLoadScreenCount;
 
   //load assets. callback function assetsLoaded is called after all assets are loaded.
   gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("symbolTextures"), assetsLoaded);
   gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("uiAssets"), assetsLoaded);
   gameManager.assetManager.loadAnimBatch(gameManager.dataManager.getAssetDataByName("animAssets"), assetsLoaded);
 
+  function updateLoadScreenCount(p){
+    //gameManager.loadCounter++;
+    var loaderTxt = gameManager.objectManager.getObjectByName("loaderText");
+    //console.log("loaderText: " + loaderTxt);
+    loaderTxt.displayObject.content("LOADING GAME %" + Math.trunc(p/*gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad)*/));
+    //console.log("loading %" + Math.trunc(gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad));
+  }
 
   function assetsLoaded(to, loaded){
     count++;
     //checks if all of the asset batches are loaded
     if(count == 3){
       console.log("all assets are loaded! ");
+
+      loaderSc.hide();
 
       //create scene
       var sc = new scene(gameManager.dataManager.getSceneDataByName("slotScene"));
@@ -87,6 +106,12 @@ function loadAssets(){
 
       //make line button container reachable through the root script
       gameManager.lineBtnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
+
+      gameManager.slot.updateCashText();
+      gameManager.objectManager.getObjectByName("coinValueText").displayObject.content(gameManager.server.coinValue);
+      gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(gameManager.server.selectedLines);
+      gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(gameManager.server.spinValue);;
+      gameManager.objectManager.getObjectByName("winText").displayObject.content("WELCOME!");
     }
   }
 

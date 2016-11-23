@@ -9,6 +9,27 @@
       "fileType": "png",
       "startIndex": 87,
       "assetCount": 50
+    },
+    "minerAnim":{
+      "path": "games/test/assets/animations/minerAnim/",
+      "assetPref": "pers_idle_",
+      "fileType": "png",
+      "startIndex": 0,
+      "assetCount": 34
+    },
+    "logoAnim":{
+      "path": "games/test/assets/animations/logoAnim/",
+      "assetPref": "logo_",
+      "fileType": "png",
+      "startIndex": 104,
+      "assetCount": 20
+    },
+    "winBackAnim":{
+      "path": "games/test/assets/animations/winBackAnim/",
+      "assetPref": "tablo_",
+      "fileType": "png",
+      "startIndex": 1,
+      "assetCount": 10
     }
   }
 }

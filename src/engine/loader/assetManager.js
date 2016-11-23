@@ -15,19 +15,26 @@ var callbackFuncArgs = null;
 //contains all of the visual assets
 assetManager.loader = pixi.loader;
 assetManager.animations = [];
+assetManager.loaderScreenFunction = null;
+assetManager.counters = {}
+
+assetManager.loader.on('progress', function(loader){
+  if(assetManager.loaderScreenFunction!=null)
+    assetManager.loaderScreenFunction(loader.progress);
+})
 
 assetManager.loadImageBatch = function(args, callback){
   var ctr = 0;
   var toLoad = args.assets.length;
   args.assets.forEach(elm=>{
-    //console.log("name: " + elm.name + " path: " + (args.pathPrefix + elm.path));
     loadFile(elm.name, args.pathPrefix + elm.path);
   })
 
   function loadFile(name, path){
     assetManager.loader.add(name, path);
-    assetManager.loader.once('complete', loadCallback);
-    assetManager.loader.load();
+    assetManager.loader.once('complete', function(){
+      loadCallback();
+    });
   }
 
   function loadCallback(){
@@ -35,6 +42,8 @@ assetManager.loadImageBatch = function(args, callback){
     if(ctr == toLoad)
       callback();
   }
+
+  assetManager.loader.load();
 }
 
 assetManager.loadAnimBatch = function(args, callback){
@@ -42,9 +51,10 @@ assetManager.loadAnimBatch = function(args, callback){
   var toLoad = 0;
   var assetArr = args.assets;
   var animDataKeys = Object.keys(assetArr);
+
   animDataKeys.forEach(key=>{
     var elem = assetArr[key];
-    toLoad = elem.assetCount * animDataKeys.length;
+    toLoad += elem.assetCount;
     var sInd;
     elem.startIndex != null ? sInd = elem.startIndex : sInd = 0;
     for(var i = sInd; i < sInd + elem.assetCount; i++){
@@ -56,15 +66,19 @@ assetManager.loadAnimBatch = function(args, callback){
       var name = elem.assetPref + (i - sInd);
       assetManager.loader.add(name, elem.path + elem.assetPref + ind + "." + elem.fileType);
       assetManager.loader.once('complete', loadCallback);
-      assetManager.loader.load();
     }
   });
+
   function loadCallback(){
+    if(assetManager.loaderScreenFunction!=null)
+      assetManager.loaderScreenFunction();
     ctr++;
     if(ctr == toLoad){
       callback();
     }
   }
+
+  assetManager.loader.load();
 }
 
 function createAnimAssetBatchCallback(o){

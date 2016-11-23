@@ -24,6 +24,8 @@ var tapir = require('./../../src/');
 
 //gameManager is the main class of the game
 var gameManager = exports;
+gameManager.loadCounter = 0;
+gameManager.totalAssetsToLoad = 159;
 
 //managers are assigned to the game Manager to be reachable from dynamic code
 gameManager.objectManager = tapir.objectManagement.objectManager;
@@ -47,7 +49,7 @@ var slotType = require('./scripts/types/slotType.js');
 var gameDataPath = ('games/test/data/game.json');
 
 //setting up renderer and stage
-var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true, resolution: window.devicePixelRatio || 1});
+var renderer = pixi.autoDetectRenderer(1280, 800,{transparent: true});
 gameManager.stage = new pixi.Container();
 
 var gameDiv = document.getElementById('gameDiv');
@@ -77,19 +79,36 @@ function loadAssets(){
   //registering a dynamic object type
   dynamicTypes.registerDynamicObjectType(new slotType());
 
+  //gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("symbolTextures"), assetsLoaded);
+
   console.log("started loading assets ");
+
+  var loaderSc = new scene(gameManager.dataManager.getSceneDataByName("loaderScene"));
+
+  gameManager.stage.addChild(loaderSc.container);
+
+  gameManager.assetManager.loaderScreenFunction = updateLoadScreenCount;
 
   //load assets. callback function assetsLoaded is called after all assets are loaded.
   gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("symbolTextures"), assetsLoaded);
   gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("uiAssets"), assetsLoaded);
   gameManager.assetManager.loadAnimBatch(gameManager.dataManager.getAssetDataByName("animAssets"), assetsLoaded);
 
+  function updateLoadScreenCount(p){
+    //gameManager.loadCounter++;
+    var loaderTxt = gameManager.objectManager.getObjectByName("loaderText");
+    //console.log("loaderText: " + loaderTxt);
+    loaderTxt.displayObject.content("LOADING GAME %" + Math.trunc(p/*gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad)*/));
+    //console.log("loading %" + Math.trunc(gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad));
+  }
 
   function assetsLoaded(to, loaded){
     count++;
     //checks if all of the asset batches are loaded
     if(count == 3){
       console.log("all assets are loaded! ");
+
+      loaderSc.hide();
 
       //create scene
       var sc = new scene(gameManager.dataManager.getSceneDataByName("slotScene"));
@@ -102,6 +121,12 @@ function loadAssets(){
 
       //make line button container reachable through the root script
       gameManager.lineBtnCont = gameManager.objectManager.getObjectByName("lineButtonContainer").displayObject;
+
+      gameManager.slot.updateCashText();
+      gameManager.objectManager.getObjectByName("coinValueText").displayObject.content(gameManager.server.coinValue);
+      gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(gameManager.server.selectedLines);
+      gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(gameManager.server.spinValue);;
+      gameManager.objectManager.getObjectByName("winText").displayObject.content("WELCOME!");
     }
   }
 
@@ -386,6 +411,12 @@ function normalizeIndexNumber(ind, arraySize){
 var server = exports;
 var slot = require('./../slot.js');
 server.name = "game server";
+server.earnings = 0;
+server.wallet = 20045;
+server.coinValue = 5;
+server.spinValue = 0;
+server.selectedLines = 9;
+server.numberOfLines = 9;
 
 
 
@@ -402,6 +433,9 @@ server.p = [
     [0,1,2,1,0]
 ]
 
+server.coinValues=[1, 5, 10, 20, 50];
+server.currentCoinValueIndex = 1;
+
 server.randomizeSpin = function (){
     server.spinData = new Array();
     //console.log('Generating spin data');
@@ -409,6 +443,8 @@ server.randomizeSpin = function (){
         server.spinData.push(Math.floor((Math.random() * (100)) + 0));
     }
     console.log("new spin indexes: " + server.spinData[0] + " " + server.spinData[1] + " " + server.spinData[2] + " " + server.spinData[3] + " " + server.spinData[4] + " ")
+    server.spinValue = server.selectedLines * server.coinValue;
+    server.wallet -= server.spinValue;
     return server.spinData;
 }
 
@@ -423,7 +459,8 @@ server.randomizeReels = function (rSize){
     for(var i = 0; i < server.noOfReels; i++){
         var rl =new Array();
         for(var j = 0; j < rSize; j++){
-            rl.push(Math.floor((Math.random() * (server.numberOfSymbolAssets)) + 0));
+          let v = Math.floor((Math.random() * (server.numberOfSymbolAssets - 4)) + 0);
+          rl.push(Math.floor((Math.random() * (server.numberOfSymbolAssets - v)) + v));
         }
         server.reels.push(rl);
     }
@@ -445,7 +482,74 @@ server.checkWin = function(activeLines){
         if(ctr > 2)
             winLines.push([(i+1), ctr, first]);
     }
+    if(winLines[0] != null)
+      server.earnings = server.coinValue * Math.floor((Math.random() * (20 * winLines.length) + 10));
+    else
+      server.earnings = 0;
+    console.log("earnings: " + server.earnings);
     return winLines;
+}
+
+server.decreaseCoinValue = function(){
+  if(server.currentCoinValueIndex > 0){
+    server.currentCoinValueIndex--;
+      console.log("dec");
+    server.coinValue = server.coinValues[server.currentCoinValueIndex];
+    server.spinValue = server.coinValue * server.selectedLines;
+  }
+  let ret = new Object();
+  ret.spinValue = server.spinValue;
+  ret.coinValue = server.coinValue;
+  console.log(ret);
+  return ret;
+}
+
+server.increaseCoinValue = function(){
+  if(server.currentCoinValueIndex < server.coinValues.length-1){
+    server.currentCoinValueIndex++;
+    server.coinValue = server.coinValues[server.currentCoinValueIndex];
+    server.spinValue = server.coinValue * server.selectedLines;
+  }
+  let ret = new Object();
+  ret.spinValue = server.spinValue;
+  ret.coinValue = server.coinValue;
+  console.log(ret);
+  return ret;
+}
+
+server.increaseNumberOfLines = function(){
+  if(server.selectedLines < server.numberOfLines){
+    server.selectedLines++;
+    server.spinValue = server.selectedLines * server.coinValue;
+  }
+  var ret = new Object();
+  ret.spinValue = server.spinValue;
+  ret.selectedLines = server.selectedLines;
+  return ret;
+}
+
+server.decreaseNumberOfLines = function(){
+  if(server.selectedLines > 1){
+    server.selectedLines--;
+    server.spinValue = server.selectedLines * server.coinValue;
+  }
+  var ret = new Object();
+  ret.spinValue = server.spinValue;
+  ret.selectedLines = server.selectedLines;
+  return ret;
+}
+
+server.setNumberOfLines = function(val){
+  server.selectedLines = val;
+  server.spinValue = server.selectedLines * server.coinValue;
+  var ret = new Object();
+  ret.spinValue = server.spinValue;
+  ret.selectedLines = server.selectedLines;
+  return ret;
+}
+
+server.updateWallet = function(){
+  server.wallet += server.earnings;
 }
 
 },{"./../slot.js":6}],6:[function(require,module,exports){
@@ -461,6 +565,7 @@ slot.reelArr = [];
 slot.spinning = false;
 slot.spinData = [];
 slot.reelData = [];
+
 
 slot.initializeSlot = function(spinData, reelData){
   slot.reelData = reelData;
@@ -479,6 +584,8 @@ slot.initializeSlot = function(spinData, reelData){
 
 slot.startSpin = function(){
   //console.log("spinData: " + slot.spinData);
+  let gameLogoAnim = gameManager.objectManager.getObjectByName("gameLogo");
+  gameLogoAnim.displayObject.playAnimation();
   reelLines.stopWinningLineAnimations();
   slot.setActiveLineButton(slot.activeLine, true, false);
   if(slot.lineTimer != undefined)slot.lineTimer.stop();
@@ -488,8 +595,10 @@ slot.startSpin = function(){
   //if slot is not spinning and pressed spin button, get new spin data from server simulator
 
   if(!slot.spinStarted){
+    slot.updateWinText("Good Luck!");
     gameManager.objectManager.getObjectByName("lineContainer").displayObject.removeChildren();
     gameManager.objectManager.getObjectByName("animationContainer").displayObject.removeChildren();
+    gameManager.objectManager.getObjectByName("cashTextObject").displayObject.setState("stop");
 
     //reelLines.deactivateLineButtons();
     slot.finishedReelCount = 0;
@@ -498,6 +607,7 @@ slot.startSpin = function(){
         slot.winData = gameManager.server.checkWin(slot.activeLine);
         //slot.winData = [[3, 3, 6], [6,4,6], [2, 3, 1], [4,5,9]];
         console.log("win data: " + slot.winData);
+        slot.updateCashText();
     }
 
     //you can trace it on the console if the spin stops on correct position or not.
@@ -519,24 +629,24 @@ slot.startSpin = function(){
 
     //if not spinning, start spinning each reel, if spinning, stop them and set the final position
     for(var i = 0; i < 5; i++){
-        if(!slot.reelArr[i].isSpinning){
-            console.log("target for reel " + i + ": " + slot.reelData[i][slot.spinData[i]] + "\narray: " + slot.reelData[i])
-            slot.reelArr[i].textureChanged = false;
-            slot.tArr[i].start();
-            slot.tArr[i].on('end', function(del){
-              delay((del-0.1)/250);
-            });
+      if(!slot.reelArr[i].isSpinning){
+        console.log("target for reel " + i + ": " + slot.reelData[i][slot.spinData[i]] + "\narray: " + slot.reelData[i])
+        slot.reelArr[i].textureChanged = false;
+        slot.tArr[i].start();
+        slot.tArr[i].on('end', function(del){
+          delay((del-0.1)/250);
+        });
 
-            function delay(ind){
-              var flag = false;
-              for(var j = ind; j >0; j--){
-                  if(!slot.reelArr[j-1].isSpinning && j > 0)flag = true;
-              }
-              if(!flag){
-                  slot.reelArr[ind].startSpin(slot.spinData[ind]);
-              }
-            }
+        function delay(ind){
+          var flag = false;
+          for(var j = ind; j >0; j--){
+              if(!slot.reelArr[j-1].isSpinning && j > 0)flag = true;
+          }
+          if(!flag){
+              slot.reelArr[ind].startSpin(slot.spinData[ind]);
+          }
         }
+      }
     }
   }
   else{
@@ -581,20 +691,41 @@ slot.setActiveLineButton = function(buttonIndex, setActiveLine = true, buttonCli
 slot.stopSpin = function(args){
   for(var i = 0; i < 5; i++){
       slot.reelArr[i].stopReel(slot.spinData[i]);
-      //console.log("to stop: " + slot.spinData[i]);
   }
 }
 
 slot.finishSpinSequence = function(){
     console.log("spin is finished");
+    let gameLogoAnim = gameManager.objectManager.getObjectByName("gameLogo");
+    gameLogoAnim.displayObject.gotoAndStop(0);
     if(slot.winData.length != 0){
         var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
         reelLines.animateWinningLines(slot.winData);
+        gameManager.objectManager.getObjectByName("cashTextObject").displayObject.setState("play");
+        slot.updateWinText();
+    }
+    else{
+      slot.updateWinText("Try Again!")
     }
     slot.spinStarted = false;
     slot.spinning = false;
     slot.setSpinButtonText("SPIN");
     slot.setActiveLineButton(slot.activeLine, true, false);
+    gameManager.server.updateWallet();
+    slot.updateCashText();
+}
+
+slot.updateCashText = function(){
+  var cashText = gameManager.objectManager.getObjectByName("cashText");
+  cashText.displayObject.content(gameManager.server.wallet);
+}
+
+slot.updateWinText = function(text = null){
+  var winText = gameManager.objectManager.getObjectByName("winText");
+  if(text == null)
+    winText.displayObject.content("You Won " + gameManager.server.earnings);
+  else
+    winText.displayObject.content(text);
 }
 
 slot.playSymbolAnimationsByLine = function(winArr, winLine, animCount){
@@ -602,20 +733,61 @@ slot.playSymbolAnimationsByLine = function(winArr, winLine, animCount){
     var reelCont = gameManager.objectManager.getObjectByName('slotGameContainer');
     for(var i = 0; i < animCount; i++){
         var anim = new gameManager.animType();
-        animCont.addChild(anim.createObject("symbolAnim"));
+        animCont.addChild(anim.instantiateAnimByName("symbolAnim"));
         anim.displayObject.x = 260 + 154 * i;
         anim.displayObject.y = 124 + 144 * winLine[i];
-        anim.playAnimation();
+        anim.displayObject.playAnimation();
     }
 }
 
+slot.increaseNumberOfLines = function(){
+  let retObj = gameManager.server.increaseNumberOfLines();
+  gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(retObj.selectedLines);
+  gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+  slot.drawLine(retObj.selectedLines, true);
+}
 
-slot.drawLine = function(v){
+slot.decreaseNumberOfLines = function(){
+  let retObj = gameManager.server.decreaseNumberOfLines();
+  gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(retObj.selectedLines);
+  gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+  slot.drawLine(retObj.selectedLines, true);
+}
+
+slot.increaseCoinValue = function(){
+  let retObj = gameManager.server.increaseCoinValue();
+  gameManager.objectManager.getObjectByName("coinValueText").displayObject.content(retObj.coinValue);
+  gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+}
+
+slot.decreaseCoinValue = function(){
+  let retObj = gameManager.server.decreaseCoinValue();
+  gameManager.objectManager.getObjectByName("coinValueText").displayObject.content(retObj.coinValue);
+  gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+}
+
+slot.drawLine = function(v, inc=false){
   slot.setActiveLineButton(v);
   var lnCont = gameManager.objectManager.getObjectByName("lineContainer");
   if(lnCont.displayObject.children != null)
     lnCont.displayObject.removeChildren();
-  lnCont.displayObject.addChild(gameManager.reelLines.drawLine(v));
+
+
+  if(!inc){
+    lnCont.displayObject.addChild(gameManager.reelLines.drawLine(v));
+    let retObj = gameManager.server.setNumberOfLines(v);
+    gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(retObj.selectedLines);
+    gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(retObj.spinValue);
+  }
+  else{
+    for(var i = 1; i < v+1; i++){
+      var t = pixi.timerManager.createTimer(i * 100);
+      t.start();
+      t.on('end', function f(t){
+        lnCont.displayObject.addChild(gameManager.reelLines.drawLine(t/100));
+      });
+    }
+  }
 }
 
 slot.setSpinButtonText = function(textVal){
@@ -756,19 +928,26 @@ var callbackFuncArgs = null;
 //contains all of the visual assets
 assetManager.loader = pixi.loader;
 assetManager.animations = [];
+assetManager.loaderScreenFunction = null;
+assetManager.counters = {}
+
+assetManager.loader.on('progress', function(loader){
+  if(assetManager.loaderScreenFunction!=null)
+    assetManager.loaderScreenFunction(loader.progress);
+})
 
 assetManager.loadImageBatch = function(args, callback){
   var ctr = 0;
   var toLoad = args.assets.length;
   args.assets.forEach(elm=>{
-    //console.log("name: " + elm.name + " path: " + (args.pathPrefix + elm.path));
     loadFile(elm.name, args.pathPrefix + elm.path);
   })
 
   function loadFile(name, path){
     assetManager.loader.add(name, path);
-    assetManager.loader.once('complete', loadCallback);
-    assetManager.loader.load();
+    assetManager.loader.once('complete', function(){
+      loadCallback();
+    });
   }
 
   function loadCallback(){
@@ -776,6 +955,8 @@ assetManager.loadImageBatch = function(args, callback){
     if(ctr == toLoad)
       callback();
   }
+
+  assetManager.loader.load();
 }
 
 assetManager.loadAnimBatch = function(args, callback){
@@ -783,9 +964,10 @@ assetManager.loadAnimBatch = function(args, callback){
   var toLoad = 0;
   var assetArr = args.assets;
   var animDataKeys = Object.keys(assetArr);
+
   animDataKeys.forEach(key=>{
     var elem = assetArr[key];
-    toLoad = elem.assetCount * animDataKeys.length;
+    toLoad += elem.assetCount;
     var sInd;
     elem.startIndex != null ? sInd = elem.startIndex : sInd = 0;
     for(var i = sInd; i < sInd + elem.assetCount; i++){
@@ -797,15 +979,19 @@ assetManager.loadAnimBatch = function(args, callback){
       var name = elem.assetPref + (i - sInd);
       assetManager.loader.add(name, elem.path + elem.assetPref + ind + "." + elem.fileType);
       assetManager.loader.once('complete', loadCallback);
-      assetManager.loader.load();
     }
   });
+
   function loadCallback(){
+    if(assetManager.loaderScreenFunction!=null)
+      assetManager.loaderScreenFunction();
     ctr++;
     if(ctr == toLoad){
       callback();
     }
   }
+
+  assetManager.loader.load();
 }
 
 function createAnimAssetBatchCallback(o){
@@ -1144,6 +1330,7 @@ var gameObject = objectTypes.gameObject;
 var container = objectTypes.container;
 var button = objectTypes.button;
 var textObject = objectTypes.textObject;
+var animation = objectTypes.animation;
 
 var assetManager =  require('./../loader/assetManager.js');
 var manipulator = require('./../common/manipulations');
@@ -1160,10 +1347,10 @@ objectManager.setCommonProperties = function(o, args){
   args.y != null ? o.position.y = args.y : o.position.y = 0;
   args.visible != null ? o.visible = args.visible : o.visible = true;
   args.tag != null ? o.tag = args.tag : o.tag = "none";
+  args.interactive != null ? o.interactive = args.interactive : o.interactive = true;
   if(args.width != null) o.width = args.width;
   if(args.height != null) o.height = args.height;
   if(args.states != null) o.states = args.states;
-  o.interactive = true;
   args.buttonMode != null ? o.buttonMode = args.buttonMode : o.buttonMode = false;
 
   if(args.state != null)o.setState(args.state);
@@ -1244,11 +1431,11 @@ objectManager.registerActions = function(o, args){
 
 objectManager.setCommonFunctions = function(o){
 
-  o.setProperty = function(args){
+  /*o.setProperty = function(args){
     args.foreach(e => {
       o[e.property] = e.value;
     })
-  }
+  }*/
 
   o.executeFunction = function(name, args){
     o[name](args);
@@ -1272,12 +1459,15 @@ objectManager.setCommonFunctions = function(o){
   }
 
   o.setObjectProperty = function(args){
-    var objToSet = objectManager.getObjectByName(args.target);
-    //console.log("setting object property " + objToSet.displayObject.name);
-    if(objToSet != "this")
+  //console.log("setting object property " + objToSet.displayObject.name);
+    if(args.target != "this"){
+      var objToSet = objectManager.getObjectByName(args.target);
       objToSet.displayObject.setProperty(args.props);
-    else
-      o.displayObject.setProperty(args.props);
+    }
+    else{
+      var objToSet = objectManager.getObjectByName(o.name);
+      o.setProperty(args.props);
+    }
   }
 
   o.processState = function(args){
@@ -1355,6 +1545,9 @@ objectManager.createObject = function(args){
     case "object":
       //console.log("game object");
       return new gameObject().createObject(args);
+    case "animation":
+      //console.log("game object");
+      return new animation().createObject(args);
     case "container":
       //console.log("container object");
       return new container().createObject(args);
@@ -1401,14 +1594,15 @@ objectManager.broadcastMessage = function(o, args){
 var animation = exports;
 var assetManager = require('./../../loader/assetManager.js');
 var dataManager = require('./../../loader/dataManager.js');
+var objectManager = require('./../objectManager.js');
 //var slot = require('./../slot/slot.js');
 
 module.exports = function(){
   var mc;
   this.createObject = function(args){
 
-    var data = dataManager.getAnimDataByName(args);
-    this.name = args;
+    var data = dataManager.getAnimDataByName(args.animRegName);
+    this.name = args.name;
 
     var resources = gameManager.assetManager.loader.resources;
     //console.log(resources);
@@ -1420,25 +1614,99 @@ module.exports = function(){
 
     mc = new PIXI.MovieClip(textureArray);
 
-    this. displayObject = mc;
+    mc = objectManager.setCommonProperties(mc, args);
+    mc = objectManager.registerActions(mc, args);
+    mc = objectManager.setCommonFunctions(mc);
+
+    args.loop != undefined ? mc.loop = args.loop : mc.loop = true;
+
+    if(args.playDefault)
+      mc.play();
+
+    this.displayObject = mc;
+
+    mc.completeArgs;
+
+    mc.playAnimation = function(){
+        mc.play();
+    }
+
+    mc.stopAnimation = function(){
+      mc.loop = false;
+      mc.stop();
+    }
+
+    mc.onAnimationComplete = function(args){
+      mc.loop = false;
+      mc.completeArgs = args;
+    }
+
+    var complete = function(){
+      mc.processState(mc.completeArgs);
+    }
+    mc.onComplete = complete;
+
+    objectManager.registerObject(this);
+
     return mc;
   }
 
-  this.playAnimation = function(animName){
-      mc.play();
-  }
+  this.instantiateAnimByName = function(assetRegName, args = null){
+    var data = dataManager.getAnimDataByName(assetRegName);
+    this.name = name;
 
-  this.stopAnimation = function(){
+    var resources = gameManager.assetManager.loader.resources;
+    //console.log(resources);
+    var textureArray = [];
+    for (let i=0; i < data.assetCount; i++)
+    {
+        textureArray.push(resources[data.assetPref + i].texture);
+    };
+
+    mc = new PIXI.MovieClip(textureArray);
+
+    this.displayObject = mc;
+
+    objectManager.registerObject(this);
+
+    if(args != null){
+      args.loop != undefined ? mc.loop = args.loop : mc.loop = true;
+
+      if(args.playDefault)
+        mc.play();
+      }
+
+    this.displayObject = mc;
+
+    mc.completeArgs;
+
+    mc.playAnimation = function(){
+        mc.play();
+    }
+
+    mc.stopAnimation = function(){
+      mc.loop = false;
       mc.stop();
+    }
+
+    mc.onAnimationComplete = function(args){
+      mc.loop = false;
+      mc.completeArgs = args;
+    }
+
+    var complete = function(){
+      mc.processState(mc.completeArgs);
+    }
+    mc.onComplete = complete;
+
+
+    return mc;
   }
 
-  this.gotoAndPlay = function(ind){
-      mc.gotoAndPlay(ind);
-  }
   return this;
 }
 
-},{"./../../loader/assetManager.js":13,"./../../loader/dataManager.js":14}],25:[function(require,module,exports){
+},{"./../../loader/assetManager.js":13,"./../../loader/dataManager.js":14,"./../objectManager.js":23}],25:[function(require,module,exports){
 "use strict";
 
 var objectManager = require('./../objectManager.js');
@@ -1472,8 +1740,10 @@ module.exports = function(){
     args.toggleButton != null ? o.toggleButton = args.toggleButton : o.toggleButton = false;
     args.active != null ? o.active = args.active : o.active = true;
 
+    if(o.background != null)
+      o.defaultImage = args.background;
     if(args.images != null){
-      args.images.default != null ? o.defaultImage = args.images.default : o.defaultImage = args.background;
+      if(args.images.default != null) o.defaultImage = args.images.default;
       o.clickedImage = args.images.clicked;
       o.activeImage = args.images.active;
       o.passiveImage = args.images.passive;
@@ -1521,8 +1791,8 @@ module.exports = function(){
     o.mouseout = function(){
       if(args.actions != null && args.actions.mouseOut != null)
         o.processState(args.actions.mouseOut)
-      if(o.active && !o.clicked)
-          o.setTexture(o.defaultImage);
+      if(o.active && !o.clicked){
+        o.setTexture(o.defaultImage);}
     }
 
     o.click = function(){
@@ -1720,9 +1990,25 @@ module.exports = function(){
     args.props.fontSize == null ? fSize = 20 : fSize = args.props.fontSize;
     var fFill;
     args.props.fill == null ? fFill = 0xffffff : fFill = args.props.fill;
-    var fAlign;
-    args.props.align == null ? fAlign = 'left' : fAlign = args.props.align;
-    var text = new PIXI.Text(args.content,{fontFamily : fFamily, fontSize: fSize, fill : fFill, align : fAlign});
+    var style = {fontFamily : fFamily, fontSize: fSize, fill : fFill}
+    var text = new PIXI.Text(args.content, style);
+    if(args.props.width != undefined)text.textWidth = args.props.width;
+    if(args.props.height != undefined)text.textHeight = args.props.height;
+
+    switch(args.props.align){
+      case "center":
+        text.anchor.set(0.5,0.5);
+        break;
+      case "left":
+        text.anchor.set(0,0.5);
+        break;
+      case "right":
+        text.anchor.set(1,0.5);
+        break;
+      default:
+        text.anchor.set(0,0.5);
+        break;
+    }
     text.name = args.name;
 
     args.x == null ? text.position.x = 0 : text.position.x = args.x;

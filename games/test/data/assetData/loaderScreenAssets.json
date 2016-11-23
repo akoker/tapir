@@ -1,0 +1,16 @@
+{
+  "type": "image",
+  "name": "loaderAssets",
+  "scene": "slotScene",
+  "pathPrefix": "/games/test/assets/uiAssets/",
+  "assets":[
+    {
+      "name" : "loaderBackground",
+      "path": "window.png"
+    },
+    {
+      "name" : "logo",
+      "path": "logo.png"
+    }
+  ]
+}

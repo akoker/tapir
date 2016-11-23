@@ -22,6 +22,10 @@
       {
         "name": "animAssetsFile",
         "path": "/games/test/data/assetData/animAssets.json"
+      },
+      {
+        "name": "loaderAssetsFile",
+        "path": "/games/test/data/assetData/loaderScreenAssets.json"
       }
     ],
     "sceneDataFiles":[
@@ -30,12 +34,8 @@
         "path": "/games/test/data/sceneData/slotScene.json"
       },
       {
-        "name": "bonusScene",
-        "path": "/games/test/data/sceneData/bonusScene.json"
-      },
-      {
-        "name": "gambleScene",
-        "path": "/games/test/data/sceneData/gambleScene.json"
+        "name": "loaderScene",
+        "path": "/games/test/data/sceneData/loaderScene.json"
       }
     ]
   }
