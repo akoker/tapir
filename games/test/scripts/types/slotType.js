@@ -35,8 +35,5 @@ module.exports = function(){
 
     return o;
   }
-  this.makeInvisible = function(){
-    this.displayObject.visible = false;
-  }
   return this;
 }

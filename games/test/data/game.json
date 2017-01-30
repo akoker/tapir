@@ -7,35 +7,42 @@
     "settingsDataFiles":[
       {
         "name": "gameSettingsFile",
-        "path": "/games/test/data/gameSettings.json"
+        "path": "/games/test/data/gameSettings.json",
+        "type": "settingsFile"
       }
     ],
     "assetDataFiles":[
       {
         "name": "symbolTextureFile",
-        "path": "/games/test/data/assetData/symbolTextureAssets.json"
+        "path": "/games/test/data/assetData/symbolTextureAssets.json",
+        "type": "assetFile"
       },
       {
         "name": "uiAssetsFile",
-        "path": "/games/test/data/assetData/uiAssets.json"
+        "path": "/games/test/data/assetData/uiAssets.json",
+        "type": "assetFile"
       },
       {
         "name": "animAssetsFile",
-        "path": "/games/test/data/assetData/animAssets.json"
+        "path": "/games/test/data/assetData/animAssets.json",
+        "type": "assetFile"
       },
       {
         "name": "loaderAssetsFile",
-        "path": "/games/test/data/assetData/loaderScreenAssets.json"
+        "path": "/games/test/data/assetData/loaderScreenAssets.json",
+        "type": "assetFile"
       }
     ],
     "sceneDataFiles":[
       {
         "name": "slotScene",
-        "path": "/games/test/data/sceneData/slotScene.json"
+        "path": "/games/test/data/sceneData/slotScene.json",
+        "type": "sceneFile"
       },
       {
         "name": "loaderScene",
-        "path": "/games/test/data/sceneData/loaderScene.json"
+        "path": "/games/test/data/sceneData/loaderScene.json",
+        "type": "sceneFile"
       }
     ]
   }

@@ -98,10 +98,7 @@ dataManager.registerData = function(data, dataType){
       dataManager.assetData.push(JSON.parse(data));
       break;
     default:
-      let o = Object();
-      o.name = dataType;
-      o.data = JSON.parse(data);
-      dataManager.dataPile.push(o);
+      dataManager.dataPile.push(JSON.parse(data));
       break;
   }
 }

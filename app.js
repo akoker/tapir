@@ -1,5 +1,3 @@
-console.log("hello world");
-
 var gameManager = require('./games/test/gameManager.js');
 
 //for unit testing

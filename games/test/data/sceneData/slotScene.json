@@ -31,7 +31,7 @@
         "y": 0,
         "states":{
           "first":{
-            "visible": "false"
+            "visible": false
           }
         },
         "children": [

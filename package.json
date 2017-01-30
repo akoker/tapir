@@ -4,19 +4,25 @@
   "description": "game engine",
   "main": "index.js",
   "scripts": {
+    "babelify": "browserify app.js -t babelify ['babelify', {'presets': ['es2015']}] bundle.js |beefy index.html",
     "watch": "watchify app.js -o bundle.js |beefy index.html",
-    "show": "browserify app.js -o bundle.js",
+    "show": "browserify app.js -o bundle.js | beefy index.html",
     "start": "./node_modules/ beefy index.html"
   },
   "author": "alican köker",
   "license": "ISC",
   "dependencies": {
-    "browserify": "^13.1.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.1.1",
+    "gulp": "^3.9.1",
     "pixi-movieclip-speed": "0.0.1",
     "pixi-timer": "^1.0.1",
     "pixi.js": "^4.0.3"
   },
   "devDependencies": {
-    "beefy": "^2.1.8"
+    "babel-preset-es2015": "^6.18.0",
+    "babelify": "^7.3.0",
+    "beefy": "^2.1.8",
+    "debug": "^2.3.3"
   }
 }

@@ -23,7 +23,6 @@ slot.initializeSlot = function(spinData, reelData){
     slot.cont.displayObject.addChild(r.tile);
     r.tile.x = (144 + 10) * i;
   }
-
   return slot;
 }
 
@@ -51,7 +50,8 @@ slot.startSpin = function(){
         slot.spinData = gameManager.server.randomizeSpin();
         slot.winData = gameManager.server.checkWin(slot.activeLine);
         //slot.winData = [[3, 3, 6], [6,4,6], [2, 3, 1], [4,5,9]];
-        console.log("win data: " + slot.winData);
+        console.log( slot.winData.length != 0 ? ' %c Win Amount: ' + gameManager.server.earnings +
+        '\n Win data: ' +slot.winData : "%c No earnings on this spin ", 'background: #222; color: #bada55; font-size:150%');
         slot.updateCashText();
     }
 

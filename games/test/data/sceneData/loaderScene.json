@@ -4,13 +4,27 @@
     {
       "type": "textObject",
       "name": "loaderText",
-      "x": 600,
-      "y": 400,
+      "x": 610,
+      "y": 600,
       "props":{
           "fontSize": 50,
-          "fill": "#ffffff",
+          "fill": "#fffff2",
           "align": "center"
       }
+    },
+    {
+      "type": "object",
+      "name": "hanger",
+      "background": "cliffhanger",
+      "x" : 480,
+      "y": 0
+    },
+    {
+      "type": "object",
+      "name": "logo",
+      "background": "logo",
+      "x": 380,
+      "y": 350
     }
   ]
 }

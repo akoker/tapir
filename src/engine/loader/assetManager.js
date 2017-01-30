@@ -16,7 +16,7 @@ var callbackFuncArgs = null;
 assetManager.loader = pixi.loader;
 assetManager.animations = [];
 assetManager.loaderScreenFunction = null;
-assetManager.counters = {}
+assetManager.counters = {};
 
 assetManager.loader.on('progress', function(loader){
   if(assetManager.loaderScreenFunction!=null)
@@ -69,9 +69,9 @@ assetManager.loadAnimBatch = function(args, callback){
     }
   });
 
+  assetManager.loader.once('complete', loadCallback);
+
   function loadCallback(){
-    if(assetManager.loaderScreenFunction!=null)
-      assetManager.loaderScreenFunction();
     ctr++;
     if(ctr == toLoad){
       callback();

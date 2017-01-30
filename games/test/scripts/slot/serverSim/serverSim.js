@@ -45,12 +45,12 @@ server.randomizeReels = function (rSize){
     server.spinData = new Array();
     server.numberOfSymbolAssets = 9;//slot.gameData.settings.totalNumberOfSymbols;
     //console.log('Generating reel data');
-    reels = new Array();
     for(var i = 0; i < server.noOfReels; i++){
         var rl =new Array();
         for(var j = 0; j < rSize; j++){
-          let v = Math.floor((Math.random() * (server.numberOfSymbolAssets - 4)) + 0);
-          rl.push(Math.floor((Math.random() * (server.numberOfSymbolAssets - v)) + v));
+          let v = Math.floor((Math.random() * (server.numberOfSymbolAssets - 2)) + 0);
+          //console.log(v);
+          rl.push(Math.floor((Math.random() * (server.numberOfSymbolAssets - v)) + 0));
         }
         server.reels.push(rl);
     }

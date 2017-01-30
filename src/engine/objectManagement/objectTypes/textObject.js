@@ -4,8 +4,8 @@ var objectManager = require('./../objectManager.js');
 
 var pixi = require('pixi.js');
 module.exports = function(){
-
   this.createObject = function(args){
+    //console.log(args);
     this.name = args.name;
     var fFamily;
     args.props.fontFamily == null ? fFamily = 'Arial' : fFamily = args.props.fontFamily;
@@ -56,7 +56,7 @@ module.exports = function(){
     }
 
     text.content = function(txt){
-      text.setText(txt);
+      text.text = txt;
     }
 
     text.setProperty = function(args){

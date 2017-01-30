@@ -55,11 +55,35 @@ gameManager.initGame = function(gameDataFilePath){
 function loadGameData(){
   console.log("started loading game data!");
   //loads all game data. callback function load assets is called after all data is loaded.
-  gameManager.dataManager.loadAllGameData(gameDataPath, loadAssets);
+  gameManager.dataManager.loadAllGameData(gameDataPath, initLoader);
   //gameManager.dataManager.loadData(gameDataPath, loadAssets, "myGameData");
 }
+function initLoader(){
+  gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("loaderAssets"), showLoadingScreen);
+
+  function showLoadingScreen(){
+    gameManager.loaderSc = new scene(gameManager.dataManager.getSceneDataByName("loaderScene"));
+
+    gameManager.stage.addChild(gameManager.loaderSc.container);
+
+    gameManager.updateLoadScreenCount = function(p){
+        //gameManager.loadCounter++;
+        var loaderTxt = gameManager.objectManager.getObjectByName("loaderText");
+        loaderTxt.displayObject.content("LOADING GAME %" + Math.floor(p/*gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad)*/));
+        //console.log("loading %" + Math.trunc(gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad));
+      }
+
+    gameManager.assetManager.loaderScreenFunction = gameManager.updateLoadScreenCount;
+    gameManager.assetManager.loader.progress = 0;
+    loadAssets();
+  }
+}
+
+//loadAssets
 
 function loadAssets(){
+
+
   var count = 0;
   //registering a dynamic object type
   dynamicTypes.registerDynamicObjectType(new slotType());
@@ -68,24 +92,12 @@ function loadAssets(){
 
   console.log("started loading assets ");
 
-  var loaderSc = new scene(gameManager.dataManager.getSceneDataByName("loaderScene"));
-
-  gameManager.stage.addChild(loaderSc.container);
-
-  gameManager.assetManager.loaderScreenFunction = updateLoadScreenCount;
-
   //load assets. callback function assetsLoaded is called after all assets are loaded.
   gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("symbolTextures"), assetsLoaded);
   gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("uiAssets"), assetsLoaded);
   gameManager.assetManager.loadAnimBatch(gameManager.dataManager.getAssetDataByName("animAssets"), assetsLoaded);
 
-  function updateLoadScreenCount(p){
-    //gameManager.loadCounter++;
-    var loaderTxt = gameManager.objectManager.getObjectByName("loaderText");
-    //console.log("loaderText: " + loaderTxt);
-    loaderTxt.displayObject.content("LOADING GAME %" + Math.trunc(p/*gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad)*/));
-    //console.log("loading %" + Math.trunc(gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad));
-  }
+
 
   function assetsLoaded(to, loaded){
     count++;
@@ -93,8 +105,8 @@ function loadAssets(){
     if(count == 3){
       console.log("all assets are loaded! ");
 
-      loaderSc.hide();
-
+      gameManager.loaderSc.hide();
+      //console.log("asdas: " + gameManager.loaderSc.displayObject.visible)
       //create scene
       var sc = new scene(gameManager.dataManager.getSceneDataByName("slotScene"));
 
@@ -112,8 +124,9 @@ function loadAssets(){
       gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(gameManager.server.selectedLines);
       gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(gameManager.server.spinValue);;
       gameManager.objectManager.getObjectByName("winText").displayObject.content("WELCOME!");
+      console.log("window.innerHeight: " + window.innerHeight + " windowInnerWidth: " + window.innerWidth);
 
-      resizeFirst();
+      requestAnimationFrame(update);
     }
   }
 
@@ -141,22 +154,16 @@ function update(){
     /**************************************************************/
 }
 
-function resizeFirst() {
-    gameManager.layoutRatio = 1280/800;//params.width / params.height;
-
-    resize();
-    window.onresize = resize;
-
-}
-
 function resize() {
-    if (window.innerWidth / window.innerHeight >= gameManager.layoutRatio) {
-        var w = window.innerHeight * gameManager.layoutRatio;
+    if (window.innerWidth / window.innerHeight >= gameManager.screenRatio) {
+        var w = window.innerHeight * gameManager.screenRatio;
         var h = window.innerHeight;
     } else {
         var w = window.innerWidth;
-        var h = window.innerWidth / gameManager.layoutRatio;
+        var h = window.innerWidth / gameManager.screenRatio;
     }
     renderer.view.style.width = w + 'px';
     renderer.view.style.height = h + 'px';
+    renderer.drawingArea.width = w;
+    renderer.drawingArea.height = h;
 }

@@ -1,6 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-console.log("hello world");
-
 var gameManager = require('./games/test/gameManager.js');
 
 //for unit testing
@@ -70,11 +68,35 @@ gameManager.initGame = function(gameDataFilePath){
 function loadGameData(){
   console.log("started loading game data!");
   //loads all game data. callback function load assets is called after all data is loaded.
-  gameManager.dataManager.loadAllGameData(gameDataPath, loadAssets);
+  gameManager.dataManager.loadAllGameData(gameDataPath, initLoader);
   //gameManager.dataManager.loadData(gameDataPath, loadAssets, "myGameData");
 }
+function initLoader(){
+  gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("loaderAssets"), showLoadingScreen);
+
+  function showLoadingScreen(){
+    gameManager.loaderSc = new scene(gameManager.dataManager.getSceneDataByName("loaderScene"));
+
+    gameManager.stage.addChild(gameManager.loaderSc.container);
+
+    gameManager.updateLoadScreenCount = function(p){
+        //gameManager.loadCounter++;
+        var loaderTxt = gameManager.objectManager.getObjectByName("loaderText");
+        loaderTxt.displayObject.content("LOADING GAME %" + Math.floor(p/*gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad)*/));
+        //console.log("loading %" + Math.trunc(gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad));
+      }
+
+    gameManager.assetManager.loaderScreenFunction = gameManager.updateLoadScreenCount;
+    gameManager.assetManager.loader.progress = 0;
+    loadAssets();
+  }
+}
+
+//loadAssets
 
 function loadAssets(){
+
+
   var count = 0;
   //registering a dynamic object type
   dynamicTypes.registerDynamicObjectType(new slotType());
@@ -83,24 +105,12 @@ function loadAssets(){
 
   console.log("started loading assets ");
 
-  var loaderSc = new scene(gameManager.dataManager.getSceneDataByName("loaderScene"));
-
-  gameManager.stage.addChild(loaderSc.container);
-
-  gameManager.assetManager.loaderScreenFunction = updateLoadScreenCount;
-
   //load assets. callback function assetsLoaded is called after all assets are loaded.
   gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("symbolTextures"), assetsLoaded);
   gameManager.assetManager.loadImageBatch(gameManager.dataManager.getAssetDataByName("uiAssets"), assetsLoaded);
   gameManager.assetManager.loadAnimBatch(gameManager.dataManager.getAssetDataByName("animAssets"), assetsLoaded);
 
-  function updateLoadScreenCount(p){
-    //gameManager.loadCounter++;
-    var loaderTxt = gameManager.objectManager.getObjectByName("loaderText");
-    //console.log("loaderText: " + loaderTxt);
-    loaderTxt.displayObject.content("LOADING GAME %" + Math.trunc(p/*gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad)*/));
-    //console.log("loading %" + Math.trunc(gameManager.loadCounter * 100 / gameManager.totalAssetsToLoad));
-  }
+
 
   function assetsLoaded(to, loaded){
     count++;
@@ -108,8 +118,8 @@ function loadAssets(){
     if(count == 3){
       console.log("all assets are loaded! ");
 
-      loaderSc.hide();
-
+      gameManager.loaderSc.hide();
+      //console.log("asdas: " + gameManager.loaderSc.displayObject.visible)
       //create scene
       var sc = new scene(gameManager.dataManager.getSceneDataByName("slotScene"));
 
@@ -127,8 +137,9 @@ function loadAssets(){
       gameManager.objectManager.getObjectByName("lineNumberText").displayObject.content(gameManager.server.selectedLines);
       gameManager.objectManager.getObjectByName("spinValueText").displayObject.content(gameManager.server.spinValue);;
       gameManager.objectManager.getObjectByName("winText").displayObject.content("WELCOME!");
+      console.log("window.innerHeight: " + window.innerHeight + " windowInnerWidth: " + window.innerWidth);
 
-      resizeFirst();
+      requestAnimationFrame(update);
     }
   }
 
@@ -156,24 +167,18 @@ function update(){
     /**************************************************************/
 }
 
-function resizeFirst() {
-    gameManager.layoutRatio = 1280/800;//params.width / params.height;
-
-    resize();
-    window.onresize = resize;
-
-}
-
 function resize() {
-    if (window.innerWidth / window.innerHeight >= gameManager.layoutRatio) {
-        var w = window.innerHeight * gameManager.layoutRatio;
+    if (window.innerWidth / window.innerHeight >= gameManager.screenRatio) {
+        var w = window.innerHeight * gameManager.screenRatio;
         var h = window.innerHeight;
     } else {
         var w = window.innerWidth;
-        var h = window.innerWidth / gameManager.layoutRatio;
+        var h = window.innerWidth / gameManager.screenRatio;
     }
     renderer.view.style.width = w + 'px';
     renderer.view.style.height = h + 'px';
+    renderer.drawingArea.width = w;
+    renderer.drawingArea.height = h;
 }
 
 },{"./../../src/":34,"./scripts/slot/reels/reelLines.js":4,"./scripts/slot/serverSim/serverSim.js":5,"./scripts/types/slotType.js":7,"pixi-timer":8,"pixi.js":9}],3:[function(require,module,exports){
@@ -484,12 +489,12 @@ server.randomizeReels = function (rSize){
     server.spinData = new Array();
     server.numberOfSymbolAssets = 9;//slot.gameData.settings.totalNumberOfSymbols;
     //console.log('Generating reel data');
-    reels = new Array();
     for(var i = 0; i < server.noOfReels; i++){
         var rl =new Array();
         for(var j = 0; j < rSize; j++){
-          let v = Math.floor((Math.random() * (server.numberOfSymbolAssets - 4)) + 0);
-          rl.push(Math.floor((Math.random() * (server.numberOfSymbolAssets - v)) + v));
+          let v = Math.floor((Math.random() * (server.numberOfSymbolAssets - 2)) + 0);
+          //console.log(v);
+          rl.push(Math.floor((Math.random() * (server.numberOfSymbolAssets - v)) + 0));
         }
         server.reels.push(rl);
     }
@@ -607,7 +612,6 @@ slot.initializeSlot = function(spinData, reelData){
     slot.cont.displayObject.addChild(r.tile);
     r.tile.x = (144 + 10) * i;
   }
-
   return slot;
 }
 
@@ -635,7 +639,8 @@ slot.startSpin = function(){
         slot.spinData = gameManager.server.randomizeSpin();
         slot.winData = gameManager.server.checkWin(slot.activeLine);
         //slot.winData = [[3, 3, 6], [6,4,6], [2, 3, 1], [4,5,9]];
-        console.log("win data: " + slot.winData);
+        console.log( slot.winData.length != 0 ? ' %c Win Amount: ' + gameManager.server.earnings +
+        '\n Win data: ' +slot.winData : "%c No earnings on this spin ", 'background: #222; color: #bada55; font-size:150%');
         slot.updateCashText();
     }
 
@@ -862,9 +867,6 @@ module.exports = function(){
 
     return o;
   }
-  this.makeInvisible = function(){
-    this.displayObject.visible = false;
-  }
   return this;
 }
 
@@ -958,7 +960,7 @@ var callbackFuncArgs = null;
 assetManager.loader = pixi.loader;
 assetManager.animations = [];
 assetManager.loaderScreenFunction = null;
-assetManager.counters = {}
+assetManager.counters = {};
 
 assetManager.loader.on('progress', function(loader){
   if(assetManager.loaderScreenFunction!=null)
@@ -1011,9 +1013,9 @@ assetManager.loadAnimBatch = function(args, callback){
     }
   });
 
+  assetManager.loader.once('complete', loadCallback);
+
   function loadCallback(){
-    if(assetManager.loaderScreenFunction!=null)
-      assetManager.loaderScreenFunction();
     ctr++;
     if(ctr == toLoad){
       callback();
@@ -1158,10 +1160,7 @@ dataManager.registerData = function(data, dataType){
       dataManager.assetData.push(JSON.parse(data));
       break;
     default:
-      let o = Object();
-      o.name = dataType;
-      o.data = JSON.parse(data);
-      dataManager.dataPile.push(o);
+      dataManager.dataPile.push(JSON.parse(data));
       break;
   }
 }
@@ -1974,20 +1973,59 @@ module.exports = function(){
     //console.log("creating " + args.name + "bg: " + assetNameArr[1] + " texture: " + texture);
 
     var o = new pixi.Sprite(texture);
+    console.log("name: " + args.name);
+    var propKeys = Object.keys(args);
+    var displayObject;
 
-    o = objectManager.setCommonProperties(o, args);
+    //set background of the object;
+    if(args.background != null){
+      if(args.background.substr(0,2) == "0x"){
+        displayObject = new pixi.Container();
+        var g = new pixi.Graphics();
+        g.beginFill(0x003322);
+        g.drawRect(0,0,200,200);
+        g.endFill();
+        displayObject.addChild(g);
+      }else{
+        displayObject = new pixi.Sprite(assetManager.loader.resources[args.background].texture);
+      }
+    }
+    else
+      displayObject = new pixi.Container();
 
-    o = objectManager.setCommonFunctions(o);
+    displayObject.interactive = true;
 
-    o = objectManager.registerActions(o, args);
+    displayObject = objectManager.setCommonFunctions(displayObject);
 
-    o.parentObj = this;
+    displayObject = objectManager.registerActions(displayObject, args);
 
-    this.displayObject = o;
+    propKeys.forEach(key=>{
+        /*if(displayObject[key].constructor === Function){
+
+        }*/if(key == "children" || key == "background" || key == "actions"){
+          //these keys are exception to (not to)process
+        }
+        else if(key == "state" && args.states != null){
+          //if a state is set before declaring states hierarchically on the scene file
+          //first register states
+          displayObject.states = args.states;
+          console.log(displayObject.setState);
+          displayObject.setState(args[key]);
+        }
+        else{
+          displayObject[key] = args[key];
+        }
+    });
+
+    //displayObject = objectManager.setCommonProperties(displayObject, args);
+
+    displayObject.parentObj = this;
+
+    this.displayObject = displayObject;
 
     objectManager.registerObject(this);
 
-    return o;
+    return displayObject;
   }
 
   return this;
@@ -2010,8 +2048,8 @@ var objectManager = require('./../objectManager.js');
 
 var pixi = require('pixi.js');
 module.exports = function(){
-
   this.createObject = function(args){
+    //console.log(args);
     this.name = args.name;
     var fFamily;
     args.props.fontFamily == null ? fFamily = 'Arial' : fFamily = args.props.fontFamily;
@@ -2062,7 +2100,7 @@ module.exports = function(){
     }
 
     text.content = function(txt){
-      text.setText(txt);
+      text.text = txt;
     }
 
     text.setProperty = function(args){
@@ -2201,12 +2239,12 @@ module.exports = function(data){
     this.addChild(object);
   }
 
-  this.show = function(args){
-    this.visible = true;
+  this.show = function(){
+    this.container.visible = true;
   }
 
-  this.hide = function(args){
-    this.visible = false;
+  this.hide = function(){
+    this.container.visible = false;
   }
 
   this.traverse = function(p){

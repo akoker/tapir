@@ -13,10 +13,6 @@
         "path": "back.png"
     },
     {
-        "name" : "cliffhanger",
-        "path": "cliffhanger.png"
-    },
-    {
         "name" : "btnSpin",
         "path": "btnSpin.png"
     },

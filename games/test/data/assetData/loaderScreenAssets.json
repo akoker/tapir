@@ -9,6 +9,10 @@
       "path": "window.png"
     },
     {
+      "name" : "cliffhanger",
+      "path": "cliffhanger.png"
+    },
+    {
       "name" : "logo",
       "path": "logo.png"
     }

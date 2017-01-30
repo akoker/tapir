@@ -16,20 +16,59 @@ module.exports = function(){
     //console.log("creating " + args.name + "bg: " + assetNameArr[1] + " texture: " + texture);
 
     var o = new pixi.Sprite(texture);
+    console.log("name: " + args.name);
+    var propKeys = Object.keys(args);
+    var displayObject;
 
-    o = objectManager.setCommonProperties(o, args);
+    //set background of the object;
+    if(args.background != null){
+      if(args.background.substr(0,2) == "0x"){
+        displayObject = new pixi.Container();
+        var g = new pixi.Graphics();
+        g.beginFill(0x003322);
+        g.drawRect(0,0,200,200);
+        g.endFill();
+        displayObject.addChild(g);
+      }else{
+        displayObject = new pixi.Sprite(assetManager.loader.resources[args.background].texture);
+      }
+    }
+    else
+      displayObject = new pixi.Container();
 
-    o = objectManager.setCommonFunctions(o);
+    displayObject.interactive = true;
 
-    o = objectManager.registerActions(o, args);
+    displayObject = objectManager.setCommonFunctions(displayObject);
 
-    o.parentObj = this;
+    displayObject = objectManager.registerActions(displayObject, args);
 
-    this.displayObject = o;
+    propKeys.forEach(key=>{
+        /*if(displayObject[key].constructor === Function){
+
+        }*/if(key == "children" || key == "background" || key == "actions"){
+          //these keys are exception to (not to)process
+        }
+        else if(key == "state" && args.states != null){
+          //if a state is set before declaring states hierarchically on the scene file
+          //first register states
+          displayObject.states = args.states;
+          console.log(displayObject.setState);
+          displayObject.setState(args[key]);
+        }
+        else{
+          displayObject[key] = args[key];
+        }
+    });
+
+    //displayObject = objectManager.setCommonProperties(displayObject, args);
+
+    displayObject.parentObj = this;
+
+    this.displayObject = displayObject;
 
     objectManager.registerObject(this);
 
-    return o;
+    return displayObject;
   }
 
   return this;

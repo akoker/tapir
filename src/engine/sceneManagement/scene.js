@@ -36,12 +36,12 @@ module.exports = function(data){
     this.addChild(object);
   }
 
-  this.show = function(args){
-    this.visible = true;
+  this.show = function(){
+    this.container.visible = true;
   }
 
-  this.hide = function(args){
-    this.visible = false;
+  this.hide = function(){
+    this.container.visible = false;
   }
 
   this.traverse = function(p){
